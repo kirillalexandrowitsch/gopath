@@ -36,7 +36,7 @@ coverage.out
 # Local runtime data
 tmp/
 .tmp/
-data/
+/data/
 
 # Docker
 docker-compose.override.yml
