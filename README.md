@@ -37,6 +37,7 @@ Backend:
 ## Sources of Truth
 
 - [Technical specification](docs/gopath-technical-spec.md)
+- [Architecture notes](docs/architecture.md)
 - [Bootstrap plan](docs/bootstrap-plan.md)
 
 ## Development Status
