@@ -117,42 +117,161 @@ function navClassName({ isActive }: NavLinkRenderProps, baseClass: string) {
 }
 
 function DashboardView() {
+  const dailyGoalPercent = Math.round(
+    (shellSummary.dailyGoal.earnedXp / shellSummary.dailyGoal.targetXp) * 100,
+  )
+  const levelProgressPercent = Math.round((shellSummary.xp / shellSummary.nextLevelXp) * 100)
+
   return (
-    <ShellPage
-      eyebrow="Dashboard"
-      title="Главная"
-      description="Каркас главного экрана. Полноценные виджеты, состояние уроков и прогресс будут добавлены в отдельном UI commit."
-    >
-      <div className="grid gap-4 md:grid-cols-3">
-        {shellMetrics.map((metric) => (
-          <SummaryCard key={metric.label} label={metric.label} value={metric.value} />
-        ))}
+    <section className="grid gap-6">
+      <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-6 lg:flex-row lg:items-end">
+        <div>
+          <p className="text-sm uppercase tracking-[0.22em] text-white/40">Dashboard</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-normal sm:text-5xl">Главная</h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-white/60">
+            Продолжайте путь к уровню Middle Backend через короткие уроки, практику и
+            checkpoints.
+          </p>
+        </div>
+        <NavLink
+          to={`/lesson/${shellSummary.currentLesson.id}`}
+          className="inline-flex w-fit border border-white bg-white px-5 py-3 text-sm font-semibold text-black"
+        >
+          Продолжить обучение
+        </NavLink>
       </div>
-      <section className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="border border-white/10 p-5">
-          <p className="text-sm text-white/45">Текущий урок</p>
-          <h2 className="mt-3 text-2xl font-semibold">{shellSummary.currentLesson.title}</h2>
-          <p className="mt-2 text-sm text-white/55">{shellSummary.currentLesson.step}</p>
-          <ProgressBar value={shellSummary.currentLesson.progressPercent} />
-          <NavLink
-            to={`/lesson/${shellSummary.currentLesson.id}`}
-            className="mt-5 inline-flex border border-white bg-white px-4 py-2 text-sm font-medium text-black"
-          >
-            Продолжить обучение
-          </NavLink>
+
+      <div className="grid gap-4 xl:grid-cols-[1fr_340px]">
+        <div className="grid gap-4">
+          <section className="grid gap-4 md:grid-cols-3">
+            <DashboardMetric
+              label="Ваш уровень"
+              value={shellSummary.level}
+              detail={`${shellSummary.xp.toLocaleString('ru-RU')} / ${shellSummary.nextLevelXp.toLocaleString('ru-RU')} XP`}
+              progress={levelProgressPercent}
+            />
+            <DashboardMetric
+              label="Стрик"
+              value={`${shellSummary.streakDays} дней подряд`}
+              detail="Текущая серия занятий"
+            />
+            <DashboardMetric
+              label="Сегодняшняя цель"
+              value={`${shellSummary.dailyGoal.earnedXp} / ${shellSummary.dailyGoal.targetXp} XP`}
+              detail={`${shellSummary.dailyGoal.completedTasks} из ${shellSummary.dailyGoal.targetTasks} задач выполнено`}
+              progress={dailyGoalPercent}
+            />
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+              <div>
+                <p className="text-sm text-white/45">Текущий урок</p>
+                <h2 className="mt-2 text-2xl font-semibold">{shellSummary.currentLesson.title}</h2>
+                <p className="mt-2 text-sm text-white/55">{shellSummary.currentLesson.step}</p>
+              </div>
+              <div className="border border-white/15 px-4 py-3 text-sm text-white/70">
+                +{shellSummary.currentLesson.xpReward} XP
+              </div>
+            </div>
+            <ProgressBar value={shellSummary.currentLesson.progressPercent} />
+            <div className="mt-5 flex flex-wrap gap-3">
+              <NavLink
+                to={`/lesson/${shellSummary.currentLesson.id}`}
+                className="border border-white bg-white px-4 py-2 text-sm font-medium text-black"
+              >
+                Открыть урок
+              </NavLink>
+              <NavLink
+                to="/learn"
+                className="border border-white/15 px-4 py-2 text-sm font-medium text-white/75"
+              >
+                Карта обучения
+              </NavLink>
+            </div>
+          </section>
+
+          <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+            <div className="border border-white/10 p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm text-white/45">Слабые темы</p>
+                  <h2 className="mt-2 text-xl font-semibold">Приоритет для практики</h2>
+                </div>
+                <NavLink to="/challenge/retry-context" className="text-sm text-white/60">
+                  Практика
+                </NavLink>
+              </div>
+              <div className="mt-5 grid gap-3">
+                {shellSummary.weakTopics.map((topic) => (
+                  <div key={topic.title} className="grid gap-2 border border-white/10 p-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="font-medium">{topic.title}</span>
+                      <span className="text-sm text-white/55">{topic.action}</span>
+                    </div>
+                    <ProgressBar value={topic.confidencePercent} compact />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border border-white/10 p-5">
+              <p className="text-sm text-white/45">Следующий checkpoint</p>
+              <h2 className="mt-2 text-xl font-semibold">{shellSummary.checkpoint.title}</h2>
+              <p className="mt-3 text-sm leading-6 text-white/60">
+                {shellSummary.checkpoint.description}
+              </p>
+              <dl className="mt-5 grid grid-cols-3 gap-2 text-sm">
+                <CheckpointStat label="Задач" value={String(shellSummary.checkpoint.tasksTotal)} />
+                <CheckpointStat label="Награда" value={`+${shellSummary.checkpoint.rewardXp} XP`} />
+                <CheckpointStat label="Сложность" value={shellSummary.checkpoint.difficulty} />
+              </dl>
+              <NavLink
+                to="/learn"
+                className="mt-5 inline-flex border border-white/15 px-4 py-2 text-sm font-medium text-white/75"
+              >
+                Подробнее
+              </NavLink>
+            </div>
+          </section>
         </div>
-        <div className="border border-white/10 p-5">
-          <p className="text-sm text-white/45">Слабые темы</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {shellSummary.weakTopics.map((topic) => (
-              <span key={topic} className="border border-white/15 px-3 py-2 text-sm text-white/75">
-                {topic}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-    </ShellPage>
+
+        <aside className="grid gap-4">
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Активность за неделю</p>
+            <div className="mt-5 flex h-36 items-end gap-2 border-b border-white/15 pb-2">
+              {shellSummary.weeklyActivity.map((item) => (
+                <div key={item.day} className="flex flex-1 flex-col items-center gap-2">
+                  <div
+                    className="w-full bg-white"
+                    style={{ height: `${Math.max(18, item.xp / 2)}px` }}
+                    title={`${item.day}: ${item.xp} XP`}
+                  />
+                  <span className="text-xs text-white/45">{item.day}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Последняя активность</p>
+            <div className="mt-5 grid gap-3">
+              {shellSummary.recentActivity.map((activity) => (
+                <div key={`${activity.timestamp}-${activity.title}`} className="border-b border-white/10 pb-3 last:border-b-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium leading-6">{activity.title}</p>
+                      <p className="mt-1 text-xs text-white/45">{activity.timestamp}</p>
+                    </div>
+                    <span className="shrink-0 text-sm text-white/70">+{activity.xp} XP</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </aside>
+      </div>
+    </section>
   )
 }
 
@@ -267,6 +386,36 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
   )
 }
 
+function DashboardMetric({
+  detail,
+  label,
+  progress,
+  value,
+}: {
+  detail: string
+  label: string
+  progress?: number
+  value: string
+}) {
+  return (
+    <div className="border border-white/10 p-5">
+      <p className="text-sm text-white/45">{label}</p>
+      <p className="mt-3 text-2xl font-semibold leading-tight">{value}</p>
+      <p className="mt-2 text-sm text-white/55">{detail}</p>
+      {typeof progress === 'number' ? <ProgressBar value={progress} compact /> : null}
+    </div>
+  )
+}
+
+function CheckpointStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border border-white/10 p-3">
+      <dt className="text-xs text-white/45">{label}</dt>
+      <dd className="mt-1 font-medium">{value}</dd>
+    </div>
+  )
+}
+
 function PlaceholderPanel({
   description,
   label,
@@ -285,13 +434,13 @@ function PlaceholderPanel({
   )
 }
 
-function ProgressBar({ value }: { value: number }) {
+function ProgressBar({ compact = false, value }: { compact?: boolean; value: number }) {
   return (
-    <div className="mt-4">
+    <div className={compact ? 'mt-3' : 'mt-4'}>
       <div className="h-2 border border-white/10 bg-white/10">
         <div className="h-full bg-white" style={{ width: `${value}%` }} />
       </div>
-      <p className="mt-2 text-sm text-white/50">{value}%</p>
+      {!compact ? <p className="mt-2 text-sm text-white/50">{value}%</p> : null}
     </div>
   )
 }
