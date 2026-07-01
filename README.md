@@ -41,6 +41,10 @@ Backend:
 - [Architecture notes](docs/architecture.md)
 - [Bootstrap plan](docs/bootstrap-plan.md) — historical bootstrap plan
 
+## Local Development
+
+Локальный запуск frontend, backend, PostgreSQL, Redis, migrations и smoke checks описан в [Local Development](docs/local-development.md).
+
 ## Development Status
 
 Уже есть:
