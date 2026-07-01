@@ -40,6 +40,7 @@ Backend:
 - [Delivery roadmap](docs/delivery-roadmap.md)
 - [Architecture notes](docs/architecture.md)
 - [API contract notes](docs/api-contract.md)
+- [Content authoring guide](docs/content-authoring.md)
 - [Bootstrap plan](docs/bootstrap-plan.md) — historical bootstrap plan
 
 ## Local Development
