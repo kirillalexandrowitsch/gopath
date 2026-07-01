@@ -39,6 +39,7 @@ Backend:
 - [Technical specification](docs/gopath-technical-spec.md)
 - [Delivery roadmap](docs/delivery-roadmap.md)
 - [Architecture notes](docs/architecture.md)
+- [API contract notes](docs/api-contract.md)
 - [Bootstrap plan](docs/bootstrap-plan.md) — historical bootstrap plan
 
 ## Local Development
