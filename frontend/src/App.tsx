@@ -459,21 +459,160 @@ function learningBlockClassName(status: LearningBlockStatus, isActive: boolean) 
 
   return `${baseClass} border-white/10`
 }
+
+function lessonOptionClassName(isSelected: boolean) {
+  const baseClass = 'flex flex-col gap-4 border p-4 transition sm:flex-row sm:items-center'
+
+  return isSelected ? `${baseClass} border-white bg-white/[0.03]` : `${baseClass} border-white/10`
+}
+
 function LessonView() {
   const { lessonId } = useParams()
+  const lesson = shellSummary.currentLesson
 
   return (
-    <ShellPage
-      eyebrow="Lesson"
-      title="Урок"
-      description="Каркас обычного урока с будущими вопросами, вариантами ответа, feedback и XP."
-    >
-      <PlaceholderPanel
-        label="Lesson ID"
-        value={lessonId ?? shellSummary.currentLesson.id}
-        description="На этом маршруте позже появится интерактивный урок."
-      />
-    </ShellPage>
+    <section className="grid gap-6">
+      <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-6 xl:flex-row xl:items-end">
+        <div>
+          <p className="text-sm uppercase tracking-[0.22em] text-white/40">Lesson</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-normal sm:text-5xl">
+            {lesson.title}
+          </h1>
+          <p className="mt-3 text-sm text-white/55">
+            {lesson.step} · Lesson ID: {lessonId ?? lesson.id}
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:w-72">
+          <div className="border border-white/10 p-4">
+            <p className="text-sm text-white/45">Награда</p>
+            <p className="mt-2 text-2xl font-semibold">+{lesson.xpReward} XP</p>
+          </div>
+          <div className="border border-white/10 p-4">
+            <p className="text-sm text-white/45">Попытки</p>
+            <p className="mt-2 text-2xl font-semibold">
+              {lesson.attemptsRemaining} / {lesson.totalAttempts}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
+        <section className="grid gap-4">
+          <div className="border border-white/10 p-5">
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+              <div>
+                <p className="text-sm text-white/45">Прогресс урока</p>
+                <p className="mt-2 text-xl font-semibold">{lesson.progressPercent}%</p>
+              </div>
+              <NavLink
+                to="/learn"
+                className="w-fit border border-white/15 px-4 py-2 text-sm text-white/70"
+              >
+                Карта обучения
+              </NavLink>
+            </div>
+            <ProgressBar value={lesson.progressPercent} />
+          </div>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Вопрос</p>
+            <h2 className="mt-3 text-2xl font-semibold leading-tight">{lesson.question.prompt}</h2>
+
+            <div className="mt-6 grid gap-3">
+              {lesson.question.options.map((option) => (
+                <div key={option.id} className={lessonOptionClassName(option.isSelected)}>
+                  <div className="flex size-9 shrink-0 items-center justify-center border border-white/25 text-sm font-semibold">
+                    {option.label}
+                  </div>
+                  <p className="text-base leading-6 sm:flex-1">{option.text}</p>
+                  {option.isCorrect ? (
+                    <span className="w-fit shrink-0 border border-white bg-white px-3 py-1 text-sm font-semibold text-black sm:ml-auto">
+                      Верно
+                    </span>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                className="border border-white bg-white px-5 py-3 text-sm font-semibold text-black"
+              >
+                Проверить
+              </button>
+              <button
+                type="button"
+                className="border border-white/15 px-5 py-3 text-sm text-white/70"
+              >
+                Отложить урок
+              </button>
+            </div>
+          </section>
+
+          <section className="grid gap-4 lg:grid-cols-[260px_1fr]">
+            <div className="border border-white/10 p-5">
+              <div className="flex size-16 items-center justify-center border border-white text-3xl">
+                ✓
+              </div>
+              <h2 className="mt-5 text-2xl font-semibold">{lesson.question.feedbackTitle}</h2>
+              <p className="mt-3 text-sm leading-6 text-white/60">{lesson.question.feedbackText}</p>
+            </div>
+
+            <div className="border border-white/10 p-5">
+              <p className="text-sm text-white/45">Объяснение</p>
+              <p className="mt-3 text-sm leading-7 text-white/65">{lesson.question.explanation}</p>
+              <div className="mt-5 flex justify-end">
+                <NavLink
+                  to="/challenge/retry-context"
+                  className="border border-white/15 px-4 py-2 text-sm font-medium text-white/75"
+                >
+                  Перейти к практике
+                </NavLink>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <aside className="grid gap-4 self-start xl:sticky xl:top-6">
+          <section className="border border-white/10 p-5">
+            <p className="text-sm uppercase tracking-[0.18em] text-white/35">
+              {lesson.sidebar.conceptTitle}
+            </p>
+            <div className="mt-4 grid gap-3 text-sm leading-6 text-white/65">
+              {lesson.sidebar.conceptText.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
+            <pre className="mt-5 overflow-x-auto border border-white/10 bg-white/[0.03] p-4 text-sm leading-6 text-white/75">
+              <code>{lesson.sidebar.codeSnippet}</code>
+            </pre>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Практика в backend</p>
+            <ul className="mt-4 grid gap-3 text-sm text-white/65">
+              {lesson.sidebar.practiceNotes.map((note) => (
+                <li key={note} className="flex gap-3">
+                  <span className="mt-1.5 size-2 shrink-0 border border-white/50 bg-white" />
+                  <span>{note}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Полезно знать</p>
+            <p className="mt-3 text-sm leading-6 text-white/65">{lesson.sidebar.usefulNote}</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {lesson.sidebar.relatedTopics.map((topic) => (
+                <LearningTag key={topic}>{topic}</LearningTag>
+              ))}
+            </div>
+          </section>
+        </aside>
+      </div>
+    </section>
   )
 }
 

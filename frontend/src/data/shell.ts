@@ -51,6 +51,29 @@ export type ShellSummary = {
     step: string
     progressPercent: number
     xpReward: number
+    attemptsRemaining: number
+    totalAttempts: number
+    question: {
+      prompt: string
+      options: {
+        id: string
+        label: string
+        text: string
+        isSelected: boolean
+        isCorrect: boolean
+      }[]
+      feedbackTitle: string
+      feedbackText: string
+      explanation: string
+    }
+    sidebar: {
+      conceptTitle: string
+      conceptText: string[]
+      codeSnippet: string
+      practiceNotes: string[]
+      usefulNote: string
+      relatedTopics: string[]
+    }
   }
   weakTopics: {
     title: string
@@ -99,6 +122,71 @@ export const shellSummary: ShellSummary = {
     step: 'Урок 4 из 12',
     progressPercent: 67,
     xpReward: 40,
+    attemptsRemaining: 2,
+    totalAttempts: 3,
+    question: {
+      prompt: 'Почему в Go ошибку обычно возвращают явно?',
+      options: [
+        {
+          id: 'caller-controls-error',
+          label: 'A',
+          text: 'Чтобы caller сам решил, как обработать сбой',
+          isSelected: true,
+          isCorrect: true,
+        },
+        {
+          id: 'hide-problem',
+          label: 'B',
+          text: 'Чтобы скрыть проблему от пользователя',
+          isSelected: false,
+          isCorrect: false,
+        },
+        {
+          id: 'replace-tests',
+          label: 'C',
+          text: 'Чтобы заменить unit tests',
+          isSelected: false,
+          isCorrect: false,
+        },
+        {
+          id: 'speed-runtime',
+          label: 'D',
+          text: 'Чтобы ускорить runtime',
+          isSelected: false,
+          isCorrect: false,
+        },
+      ],
+      feedbackTitle: 'Верно',
+      feedbackText:
+        'Явное возвращение ошибки позволяет вызывающей стороне принять правильное решение.',
+      explanation:
+        'В Go ошибки обрабатываются явно, чтобы не скрывать сбои и не прерывать выполнение неожиданно. Вызывающая сторона понимает контекст и может выбрать стратегию: повторить операцию, вернуть пользователю сообщение или выполнить компенсацию.',
+    },
+    sidebar: {
+      conceptTitle: 'Концепция',
+      conceptText: [
+        'В Go функции, которые могут завершиться ошибкой, возвращают значение типа error.',
+        'Такой подход держит обработку сбоя рядом с местом, где есть достаточно контекста.',
+      ],
+      codeSnippet:
+        'func GetUser(id int) (User, error) {\n' +
+        '    user, err := repo.Find(id)\n' +
+        '    if err != nil {\n' +
+        '        return User{}, fmt.Errorf("find user: %w", err)\n' +
+        '    }\n' +
+        '\n' +
+        '    return user, nil\n' +
+        '}',
+      practiceNotes: [
+        'Ошибки не игнорируются.',
+        'Ошибки оборачиваются с контекстом.',
+        'На границе API ошибки маппятся в корректные HTTP-статусы.',
+        'Логи содержат детали, но не утечки.',
+      ],
+      usefulNote:
+        'Не возвращайте nil error вместе с некорректным значением. Проверяйте ошибку перед использованием результата функции.',
+      relatedTopics: ['Errors', 'Best Practices', 'Error Wrapping', 'Go Conventions'],
+    },
   },
   weakTopics: [
     { title: 'PostgreSQL', confidencePercent: 45, action: 'Тренировать' },
