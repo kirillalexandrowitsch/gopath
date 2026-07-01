@@ -2,13 +2,14 @@ GOCACHE ?= /private/tmp/gopath-gocache
 COMPOSE_ENV ?= infra/.env.example
 COMPOSE_FILE ?= infra/compose.yml
 
-.PHONY: help backend-fmt-check backend-test backend-verify frontend-lint frontend-build compose-config diff-check
+.PHONY: help backend-fmt-check backend-test backend-verify frontend-lint frontend-build frontend-verify compose-config diff-check
 
 help:
 	@printf '%s\n' \
 		'GoPath developer commands:' \
 		'  make backend-verify  Run backend formatting check and tests' \
 		'  make backend-test    Run backend Go tests' \
+		'  make frontend-verify Run frontend lint and build checks' \
 		'  make frontend-lint   Run frontend lint' \
 		'  make frontend-build  Build frontend' \
 		'  make compose-config  Validate Docker Compose config' \
@@ -30,6 +31,8 @@ frontend-lint:
 
 frontend-build:
 	cd frontend && npm run build
+
+frontend-verify: frontend-lint frontend-build
 
 compose-config:
 	docker compose --env-file $(COMPOSE_ENV) -f $(COMPOSE_FILE) config
