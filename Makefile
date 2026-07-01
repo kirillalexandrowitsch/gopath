@@ -2,7 +2,7 @@ GOCACHE ?= /private/tmp/gopath-gocache
 COMPOSE_ENV ?= infra/.env.example
 COMPOSE_FILE ?= infra/compose.yml
 
-.PHONY: help backend-fmt-check backend-test backend-verify frontend-lint frontend-build frontend-verify compose-config diff-check
+.PHONY: help backend-fmt-check backend-test backend-verify frontend-lint frontend-build frontend-verify compose-config stack-config stack-up stack-down diff-check
 
 help:
 	@printf '%s\n' \
@@ -13,6 +13,9 @@ help:
 		'  make frontend-lint   Run frontend lint' \
 		'  make frontend-build  Build frontend' \
 		'  make compose-config  Validate Docker Compose config' \
+		'  make stack-config    Validate local Docker Compose config' \
+		'  make stack-up        Start local Docker Compose stack' \
+		'  make stack-down      Stop local Docker Compose stack without deleting volumes' \
 		'  make diff-check      Check git diff whitespace'
 
 backend-fmt-check:
@@ -36,6 +39,14 @@ frontend-verify: frontend-lint frontend-build
 
 compose-config:
 	docker compose --env-file $(COMPOSE_ENV) -f $(COMPOSE_FILE) config
+
+stack-config: compose-config
+
+stack-up:
+	docker compose --env-file $(COMPOSE_ENV) -f $(COMPOSE_FILE) up -d
+
+stack-down:
+	docker compose --env-file $(COMPOSE_ENV) -f $(COMPOSE_FILE) down
 
 diff-check:
 	git diff --check
