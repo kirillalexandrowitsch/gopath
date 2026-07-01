@@ -6,7 +6,7 @@ import {
   useParams,
   type NavLinkRenderProps,
 } from 'react-router-dom'
-import { shellSummary } from './data/shell'
+import { shellSummary, type LearningBlockStatus } from './data/shell'
 
 const primaryNav = [
   { to: '/app', label: 'Главная' },
@@ -276,33 +276,189 @@ function DashboardView() {
 }
 
 function LearningPathView() {
+  const activeBlock = shellSummary.learningPath.activeBlock
+
   return (
-    <ShellPage
-      eyebrow="Learning Path"
-      title="Карта обучения"
-      description="Здесь будет вертикальная карьерная карта с active/completed/locked состояниями и checkpoints."
-    >
-      <div className="grid gap-3">
-        {shellSummary.levels.map((level, index) => (
-          <div key={level.title} className="flex items-center justify-between border border-white/10 p-4">
-            <div>
-              <p className="text-xs text-white/45">Уровень {index + 1}</p>
-              <h2 className="mt-1 text-xl font-semibold">{level.title}</h2>
-            </div>
-            <span className="border border-white/15 px-3 py-1 text-sm text-white/65">
-              {level.status === 'completed'
-                ? 'Завершено'
-                : level.status === 'active'
-                  ? 'Активно'
-                  : 'Заблокировано'}
-            </span>
-          </div>
-        ))}
+    <section className="grid gap-6">
+      <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-6 lg:flex-row lg:items-end">
+        <div>
+          <p className="text-sm uppercase tracking-[0.22em] text-white/40">Learning Path</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-normal sm:text-5xl">
+            Карта обучения
+          </h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-white/60">
+            Карьерная карта backend-разработчика: от стажера до Senior через уроки,
+            практику и checkpoints.
+          </p>
+        </div>
+        <div className="border border-white/10 p-4 lg:w-72">
+          <p className="text-sm text-white/45">Готовность к Middle</p>
+          <p className="mt-2 text-2xl font-semibold">
+            {shellSummary.learningPath.nextLevelProgressPercent}%
+          </p>
+          <ProgressBar value={shellSummary.learningPath.nextLevelProgressPercent} compact />
+        </div>
       </div>
-    </ShellPage>
+
+      <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
+        <section className="grid gap-6">
+          {shellSummary.learningPath.stages.map((stage, stageIndex) => (
+            <div key={stage.title} className="grid gap-4 lg:grid-cols-[190px_1fr]">
+              <div className="border-t border-white/10 pt-4">
+                <p className="text-sm font-semibold">{stage.title}</p>
+                <p className="mt-1 text-sm text-white/45">{stage.subtitle}</p>
+                <p className="mt-3 text-xs uppercase tracking-[0.18em] text-white/35">
+                  {stage.completedBlocks} / {stage.totalBlocks} блоков
+                </p>
+              </div>
+              <div className="relative grid gap-3 border-l border-white/10 pl-5">
+                <div className="absolute -left-[5px] top-5 size-2.5 border border-white/40 bg-black" />
+                {stage.blocks.map((block) => (
+                  <LearningBlockCard
+                    key={block.id}
+                    block={block}
+                    isFirstStage={stageIndex === 0}
+                    isActive={block.id === activeBlock.id}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+
+        <aside className="grid gap-4 self-start xl:sticky xl:top-6">
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Активный блок</p>
+            <h2 className="mt-2 text-2xl font-semibold">{activeBlock.title}</h2>
+            <p className="mt-3 text-sm leading-6 text-white/60">{activeBlock.description}</p>
+            <ProgressBar value={activeBlock.progressPercent} />
+
+            <div className="mt-5">
+              <p className="text-sm text-white/45">Навыки уровня</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {activeBlock.skills.map((skill) => (
+                  <LearningTag key={skill}>{skill}</LearningTag>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Требования</p>
+            <ul className="mt-3 grid gap-3 text-sm text-white/70">
+              {activeBlock.requirements.map((requirement) => (
+                <li key={requirement} className="flex items-center gap-3">
+                  <span className="size-2 border border-white/40 bg-white" />
+                  {requirement}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Карьерные результаты</p>
+            <ul className="mt-3 grid gap-3 text-sm text-white/70">
+              {activeBlock.careerOutcomes.map((outcome) => (
+                <li key={outcome} className="border border-white/10 px-3 py-2">
+                  {outcome}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <NavLink
+            to={`/lesson/${shellSummary.currentLesson.id}`}
+            className="border border-white bg-white px-4 py-3 text-center text-sm font-semibold text-black"
+          >
+            Перейти к урокам
+          </NavLink>
+        </aside>
+      </div>
+    </section>
   )
 }
 
+function LearningBlockCard({
+  block,
+  isActive,
+  isFirstStage,
+}: {
+  block: (typeof shellSummary.learningPath.stages)[number]['blocks'][number]
+  isActive: boolean
+  isFirstStage: boolean
+}) {
+  return (
+    <div className={learningBlockClassName(block.status, isActive)}>
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold">{block.title}</h2>
+            {isFirstStage ? <span className="text-xs text-white/35">база</span> : null}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {block.tags.map((tag) => (
+              <LearningTag key={tag}>{tag}</LearningTag>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="border border-white/15 px-3 py-1 text-sm text-white/70">
+            {learningStatusLabel(block.status)}
+          </span>
+          {block.status === 'active' ? (
+            <NavLink
+              to={`/lesson/${shellSummary.currentLesson.id}`}
+              className="border border-white bg-white px-3 py-1 text-sm font-medium text-black"
+            >
+              Продолжить
+            </NavLink>
+          ) : null}
+        </div>
+      </div>
+      {typeof block.progressPercent === 'number' ? (
+        <ProgressBar value={block.progressPercent} compact />
+      ) : null}
+      {block.status === 'checkpoint' ? (
+        <p className="mt-3 text-sm text-white/55">
+          {block.tasksCompleted ?? 0} / {block.tasksTotal ?? 0} заданий
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+function LearningTag({ children }: { children: string }) {
+  return <span className="border border-white/15 px-2 py-1 text-xs text-white/60">{children}</span>
+}
+
+function learningStatusLabel(status: LearningBlockStatus) {
+  const labels: Record<LearningBlockStatus, string> = {
+    active: 'Активно',
+    checkpoint: 'Checkpoint',
+    completed: 'Завершено',
+    locked: 'Заблокировано',
+  }
+
+  return labels[status]
+}
+
+function learningBlockClassName(status: LearningBlockStatus, isActive: boolean) {
+  const baseClass = 'border p-5 transition'
+
+  if (isActive) {
+    return `${baseClass} border-white bg-white/[0.03]`
+  }
+
+  if (status === 'locked') {
+    return `${baseClass} border-white/10 opacity-60`
+  }
+
+  if (status === 'checkpoint') {
+    return `${baseClass} border-dashed border-white/30`
+  }
+
+  return `${baseClass} border-white/10`
+}
 function LessonView() {
   const { lessonId } = useParams()
 

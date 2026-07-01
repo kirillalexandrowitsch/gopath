@@ -3,6 +3,36 @@ export type CareerLevel = {
   status: 'completed' | 'active' | 'locked'
 }
 
+export type LearningBlockStatus = 'completed' | 'active' | 'locked' | 'checkpoint'
+
+export type LearningBlock = {
+  id: string
+  title: string
+  status: LearningBlockStatus
+  tags: string[]
+  progressPercent?: number
+  tasksCompleted?: number
+  tasksTotal?: number
+}
+
+export type LearningStage = {
+  title: string
+  subtitle: string
+  completedBlocks: number
+  totalBlocks: number
+  blocks: LearningBlock[]
+}
+
+export type ActiveLearningBlock = {
+  id: string
+  title: string
+  description: string
+  progressPercent: number
+  skills: string[]
+  requirements: string[]
+  careerOutcomes: string[]
+}
+
 export type ShellSummary = {
   userName: string
   level: string
@@ -43,6 +73,11 @@ export type ShellSummary = {
     day: string
     xp: number
   }[]
+  learningPath: {
+    nextLevelProgressPercent: number
+    activeBlock: ActiveLearningBlock
+    stages: LearningStage[]
+  }
   levels: CareerLevel[]
 }
 
@@ -103,6 +138,118 @@ export const shellSummary: ShellSummary = {
     { day: 'Сб', xp: 180 },
     { day: 'Вс', xp: 110 },
   ],
+  learningPath: {
+    nextLevelProgressPercent: 67,
+    activeBlock: {
+      id: 'go-core',
+      title: 'Go Core',
+      description:
+        'Активный блок про idiomatic error handling, table-driven tests, mocks и coverage.',
+      progressPercent: 35,
+      skills: ['Go', 'Testing', 'Errors', 'Table Tests', 'Mocking', 'Coverage'],
+      requirements: ['Основы Go', 'Алгоритмы и структуры данных'],
+      careerOutcomes: ['Go Developer (Junior)', 'Backend Developer', 'API Developer'],
+    },
+    stages: [
+      {
+        title: 'Стажер Backend',
+        subtitle: '2 / 2 блока',
+        completedBlocks: 2,
+        totalBlocks: 2,
+        blocks: [
+          {
+            id: 'go-basics',
+            title: 'Основы Go',
+            status: 'completed',
+            tags: ['Go', 'Basics'],
+            progressPercent: 100,
+          },
+          {
+            id: 'algorithms-data-structures',
+            title: 'Алгоритмы и структуры данных',
+            status: 'completed',
+            tags: ['Go'],
+            progressPercent: 100,
+          },
+        ],
+      },
+      {
+        title: 'Junior Backend',
+        subtitle: '2 / 6 блоков',
+        completedBlocks: 2,
+        totalBlocks: 6,
+        blocks: [
+          {
+            id: 'go-core',
+            title: 'Go Core',
+            status: 'active',
+            tags: ['Go', 'Testing'],
+            progressPercent: 35,
+          },
+          {
+            id: 'rest-api-checkpoint',
+            title: 'Checkpoint: REST API',
+            status: 'checkpoint',
+            tags: ['Go', 'REST API'],
+            tasksCompleted: 0,
+            tasksTotal: 8,
+          },
+          {
+            id: 'postgresql',
+            title: 'PostgreSQL',
+            status: 'locked',
+            tags: ['PostgreSQL', 'SQL'],
+          },
+          {
+            id: 'concurrency',
+            title: 'Concurrency',
+            status: 'locked',
+            tags: ['Go', 'Concurrency'],
+          },
+          {
+            id: 'message-brokers',
+            title: 'Message Brokers',
+            status: 'locked',
+            tags: ['Kafka', 'RabbitMQ', 'Redis'],
+          },
+        ],
+      },
+      {
+        title: 'Middle Backend',
+        subtitle: '0 / 6 блоков',
+        completedBlocks: 0,
+        totalBlocks: 6,
+        blocks: [
+          {
+            id: 'production-reliability',
+            title: 'Production Reliability',
+            status: 'locked',
+            tags: ['Kubernetes', 'Prometheus', 'Grafana'],
+          },
+          {
+            id: 'architecture-scaling',
+            title: 'Архитектура и масштабирование',
+            status: 'locked',
+            tags: ['System Design', 'Performance'],
+          },
+        ],
+      },
+      {
+        title: 'Senior Backend',
+        subtitle: '0 / 6 блоков',
+        completedBlocks: 0,
+        totalBlocks: 6,
+        blocks: [
+          {
+            id: 'technical-leadership',
+            title: 'Technical Leadership',
+            status: 'locked',
+            tags: ['SLO', 'Review', 'Mentoring'],
+          },
+        ],
+      },
+    ],
+  },
   levels: [
     { title: 'Стажер Backend', status: 'completed' },
     { title: 'Junior Backend', status: 'active' },
