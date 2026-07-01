@@ -33,6 +33,21 @@ export type ActiveLearningBlock = {
   careerOutcomes: string[]
 }
 
+export type ChallengeTestStatus = 'passed' | 'failed' | 'locked'
+
+export type ChallengeTest = {
+  name: string
+  status: ChallengeTestStatus
+  durationMs?: number
+}
+
+export type ChallengeAttempt = {
+  timestamp: string
+  summary: string
+  xp: number
+  status: 'passed' | 'failed'
+}
+
 export type ShellSummary = {
   userName: string
   level: string
@@ -74,6 +89,35 @@ export type ShellSummary = {
       usefulNote: string
       relatedTopics: string[]
     }
+  }
+  currentChallenge: {
+    id: string
+    title: string
+    difficulty: string
+    rewardXp: number
+    description: string
+    requirements: string[]
+    signature: string
+    types: string
+    hint: string
+    starterCode: string
+    terminalOutput: string[]
+    publicTests: ChallengeTest[]
+    hiddenTests: ChallengeTest[]
+    result: {
+      title: string
+      description: string
+      passedTests: number
+      totalTests: number
+    }
+    sandbox: {
+      status: string
+      network: string
+      memoryLimit: string
+      timeout: string
+      goVersion: string
+    }
+    attempts: ChallengeAttempt[]
   }
   weakTopics: {
     title: string
@@ -187,6 +231,107 @@ export const shellSummary: ShellSummary = {
         'Не возвращайте nil error вместе с некорректным значением. Проверяйте ошибку перед использованием результата функции.',
       relatedTopics: ['Errors', 'Best Practices', 'Error Wrapping', 'Go Conventions'],
     },
+  },
+  currentChallenge: {
+    id: 'retry-context',
+    title: 'Напиши безопасный retry',
+    difficulty: 'Junior Backend',
+    rewardXp: 120,
+    description:
+      'Реализуй функцию FetchUser с механизмом retry для временно неудачных запросов. Повтор должен выполняться с экспоненциальной задержкой и уважать context.Context.',
+    requirements: [
+      'Используй context для отмены операций.',
+      'Повторяй запрос до 3 попыток включительно.',
+      'Начальная задержка 100ms, множитель 2.0 между попытками.',
+      'Повторяй только для временных ошибок.',
+      'Не повторяй для остальных ошибок.',
+      'Убедись, что функция потокобезопасна.',
+    ],
+    signature: 'func FetchUser(ctx context.Context, id int) (User, error)',
+    types:
+      'type User struct {\n' +
+      '    ID   int    `json:"id"`\n' +
+      '    Name string `json:"name"`\n' +
+      '}\n' +
+      '\n' +
+      'type Doer interface {\n' +
+      '    Do(req *http.Request) (*http.Response, error)\n' +
+      '}',
+    hint:
+      'Используй time.NewTimer и обязательно останавливай timer, чтобы избежать утечек goroutine.',
+    starterCode:
+      'package main\n' +
+      '\n' +
+      'import (\n' +
+      '    "context"\n' +
+      '    "errors"\n' +
+      '    "io"\n' +
+      '    "net/http"\n' +
+      '    "time"\n' +
+      ')\n' +
+      '\n' +
+      'type User struct {\n' +
+      '    ID   int    `json:"id"`\n' +
+      '    Name string `json:"name"`\n' +
+      '}\n' +
+      '\n' +
+      'type Doer interface {\n' +
+      '    Do(req *http.Request) (*http.Response, error)\n' +
+      '}\n' +
+      '\n' +
+      'var client Doer\n' +
+      '\n' +
+      'func FetchUser(ctx context.Context, id int) (User, error) {\n' +
+      '    // TODO: реализуй функцию согласно требованиям\n' +
+      '    return User{}, errors.New("not implemented")\n' +
+      '}\n' +
+      '\n' +
+      'func closeBody(resp *http.Response) {\n' +
+      '    if resp != nil && resp.Body != nil {\n' +
+      '        _, _ = io.Copy(io.Discard, resp.Body)\n' +
+      '        _ = resp.Body.Close()\n' +
+      '    }\n' +
+      '}',
+    terminalOutput: [
+      '$ go test ./...',
+      '=== RUN   TestFetchUser_Success',
+      '--- PASS: TestFetchUser_Success (0.15s)',
+      '=== RUN   TestFetchUser_RetryOnTemporary',
+      '--- PASS: TestFetchUser_RetryOnTemporary (0.45s)',
+      '=== RUN   TestFetchUser_ContextCancel',
+      '--- PASS: TestFetchUser_ContextCancel (0.12s)',
+      '=== RUN   TestFetchUser_NonRetryable',
+      '--- PASS: TestFetchUser_NonRetryable (0.08s)',
+      'PASS',
+      'ok      challenge       0.812s',
+    ],
+    publicTests: [
+      { name: 'TestFetchUser_Success', status: 'passed', durationMs: 95 },
+      { name: 'TestFetchUser_RetryOnTemporary', status: 'passed', durationMs: 418 },
+      { name: 'TestFetchUser_ContextCancel', status: 'passed', durationMs: 112 },
+    ],
+    hiddenTests: [
+      { name: 'TestFetchUser_NonRetryable', status: 'passed' },
+      { name: 'TestFetchUser_MaxRetries', status: 'passed' },
+    ],
+    result: {
+      title: 'Все тесты пройдены!',
+      description: 'Решение корректно обрабатывает повторы, отмену context и типы ошибок.',
+      passedTests: 5,
+      totalTests: 5,
+    },
+    sandbox: {
+      status: 'Sandbox готов',
+      network: 'Сеть запрещена',
+      memoryLimit: '256 MB',
+      timeout: '2s timeout',
+      goVersion: 'Go 1.26',
+    },
+    attempts: [
+      { timestamp: 'Сегодня, 12:34', summary: 'Все тесты пройдены', xp: 120, status: 'passed' },
+      { timestamp: 'Сегодня, 12:21', summary: '2 / 3 теста пройдены', xp: 60, status: 'failed' },
+      { timestamp: 'Сегодня, 11:58', summary: '1 / 3 теста пройдены', xp: 30, status: 'failed' },
+    ],
   },
   weakTopics: [
     { title: 'PostgreSQL', confidencePercent: 45, action: 'Тренировать' },

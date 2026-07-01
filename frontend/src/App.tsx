@@ -6,7 +6,12 @@ import {
   useParams,
   type NavLinkRenderProps,
 } from 'react-router-dom'
-import { shellSummary, type LearningBlockStatus } from './data/shell'
+import {
+  shellSummary,
+  type ChallengeTest,
+  type ChallengeTestStatus,
+  type LearningBlockStatus,
+} from './data/shell'
 
 const primaryNav = [
   { to: '/app', label: 'Главная' },
@@ -618,20 +623,246 @@ function LessonView() {
 
 function ChallengeView() {
   const { challengeId } = useParams()
+  const challenge = shellSummary.currentChallenge
+  const displayChallengeId = challengeId ?? challenge.id
 
   return (
-    <ShellPage
-      eyebrow="Code Challenge"
-      title="Практика"
-      description="Каркас code challenge с будущим редактором, терминалом, public и hidden tests."
-    >
-      <PlaceholderPanel
-        label="Challenge ID"
-        value={challengeId ?? 'retry-context'}
-        description="Monaco Editor, xterm.js и sandbox integration будут добавлены отдельными commit."
-      />
-    </ShellPage>
+    <section className="grid gap-4">
+      <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-5 xl:flex-row xl:items-end">
+        <div>
+          <p className="text-sm uppercase tracking-[0.22em] text-white/40">
+            Практика · Code Challenge
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-normal sm:text-4xl">
+            {challenge.title}
+          </h1>
+          <p className="mt-3 text-sm text-white/55">
+            Challenge ID: {displayChallengeId} · {challenge.difficulty}
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3 xl:w-[520px]">
+          <ChallengeMetaCard label="Награда" value={`+${challenge.rewardXp} XP`} />
+          <ChallengeMetaCard label="Runtime" value={challenge.sandbox.goVersion} />
+          <ChallengeMetaCard label="Sandbox" value={challenge.sandbox.status} />
+        </div>
+      </div>
+
+      <div className="grid gap-4 2xl:grid-cols-[330px_minmax(0,1fr)_320px]">
+        <aside className="grid gap-4 self-start">
+          <section className="border border-white/10 p-5">
+            <LearningTag>{challenge.difficulty}</LearningTag>
+            <h2 className="mt-4 text-2xl font-semibold leading-tight">{challenge.title}</h2>
+            <p className="mt-4 text-sm leading-7 text-white/65">{challenge.description}</p>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Требования</p>
+            <ul className="mt-4 grid gap-3 text-sm leading-6 text-white/70">
+              {challenge.requirements.map((requirement) => (
+                <li key={requirement} className="flex gap-3">
+                  <span className="mt-2 size-1.5 shrink-0 bg-white" />
+                  <span>{requirement}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Сигнатура</p>
+            <pre className="mt-3 overflow-x-auto border border-white/10 bg-white/[0.03] p-3 text-sm text-white/75">
+              <code>{challenge.signature}</code>
+            </pre>
+            <p className="mt-5 text-sm text-white/45">Типы</p>
+            <pre className="mt-3 overflow-x-auto border border-white/10 bg-white/[0.03] p-3 text-sm leading-6 text-white/75">
+              <code>{challenge.types}</code>
+            </pre>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Подсказка</p>
+            <p className="mt-3 text-sm leading-6 text-white/65">{challenge.hint}</p>
+          </section>
+        </aside>
+
+        <section className="grid gap-4">
+          <section className="border border-white/10">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <span className="border border-white/15 px-3 py-1 text-sm font-medium">
+                  solution.go
+                </span>
+                <span className="text-sm text-white/45">{challenge.sandbox.goVersion}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button type="button" className="border border-white/15 px-4 py-2 text-sm">
+                  Run
+                </button>
+                <button
+                  type="button"
+                  className="border border-white bg-white px-4 py-2 text-sm font-semibold text-black"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+            <pre className="min-h-[520px] overflow-x-auto p-5 text-sm leading-6 text-white/75">
+              <code>{challenge.starterCode}</code>
+            </pre>
+          </section>
+
+          <section className="border border-white/10">
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+              <p className="text-sm font-medium">Терминал</p>
+              <span className="text-sm text-white/45">go test ./...</span>
+            </div>
+            <pre className="overflow-x-auto p-5 text-sm leading-6 text-white/70">
+              <code>{challenge.terminalOutput.join('\n')}</code>
+            </pre>
+          </section>
+        </section>
+
+        <aside className="grid gap-4 self-start">
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Тесты</p>
+            <ProgressBar
+              value={(challenge.result.passedTests / challenge.result.totalTests) * 100}
+              compact
+            />
+            <ChallengeTestPanel title="public tests" tests={challenge.publicTests} />
+            <ChallengeTestPanel title="hidden tests" tests={challenge.hiddenTests} />
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <div className="flex items-start gap-4">
+              <div className="flex size-14 shrink-0 items-center justify-center border border-white text-3xl">
+                ✓
+              </div>
+              <div>
+                <p className="text-xl font-semibold">{challenge.result.title}</p>
+                <p className="mt-2 text-sm leading-6 text-white/60">
+                  {challenge.result.description}
+                </p>
+              </div>
+            </div>
+            <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
+              <CheckpointStat
+                label="Тесты"
+                value={`${challenge.result.passedTests} / ${challenge.result.totalTests}`}
+              />
+              <CheckpointStat label="Награда" value={`+${challenge.rewardXp} XP`} />
+            </dl>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Sandbox limits</p>
+            <div className="mt-4 grid gap-2 text-sm text-white/65">
+              <ChallengeLimit label="Network" value={challenge.sandbox.network} />
+              <ChallengeLimit label="Memory" value={challenge.sandbox.memoryLimit} />
+              <ChallengeLimit label="Timeout" value={challenge.sandbox.timeout} />
+            </div>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">История попыток</p>
+            <div className="mt-4 grid gap-3">
+              {challenge.attempts.map((attempt) => (
+                <div
+                  key={`${attempt.timestamp}-${attempt.summary}`}
+                  className="flex items-start justify-between gap-4 border-b border-white/10 pb-3 last:border-b-0 last:pb-0"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{attempt.timestamp}</p>
+                    <p className="mt-1 text-sm text-white/55">{attempt.summary}</p>
+                  </div>
+                  <span className={challengeAttemptClassName(attempt.status)}>
+                    +{attempt.xp} XP
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </aside>
+      </div>
+    </section>
   )
+}
+
+function ChallengeMetaCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border border-white/10 p-3">
+      <p className="text-xs text-white/45">{label}</p>
+      <p className="mt-2 text-sm font-semibold">{value}</p>
+    </div>
+  )
+}
+
+function ChallengeTestPanel({ tests, title }: { tests: ChallengeTest[]; title: string }) {
+  const passedTests = tests.filter((test) => test.status === 'passed').length
+
+  return (
+    <div className="mt-5">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm font-medium">{title}</p>
+        <span className="text-sm text-white/45">
+          {passedTests} / {tests.length}
+        </span>
+      </div>
+      <div className="mt-3 grid gap-2">
+        {tests.map((test) => (
+          <div key={test.name} className={challengeTestClassName(test.status)}>
+            <span className="flex size-6 shrink-0 items-center justify-center border border-white/30 text-xs">
+              {challengeTestStatusLabel(test.status)}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-sm">{test.name}</span>
+            <span className="text-xs text-white/45">
+              {typeof test.durationMs === 'number' ? `${test.durationMs}ms` : '-'}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ChallengeLimit({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4 border border-white/10 px-3 py-2">
+      <span>{label}</span>
+      <span className="text-white/45">{value}</span>
+    </div>
+  )
+}
+
+function challengeTestStatusLabel(status: ChallengeTestStatus) {
+  const labels: Record<ChallengeTestStatus, string> = {
+    failed: '!',
+    locked: '-',
+    passed: '✓',
+  }
+
+  return labels[status]
+}
+
+function challengeTestClassName(status: ChallengeTestStatus) {
+  const baseClass = 'flex items-center gap-3 border px-3 py-2'
+
+  if (status === 'passed') {
+    return `${baseClass} border-white/15 text-white/75`
+  }
+
+  if (status === 'locked') {
+    return `${baseClass} border-white/10 text-white/40`
+  }
+
+  return `${baseClass} border-white/25 text-white`
+}
+
+function challengeAttemptClassName(status: 'passed' | 'failed') {
+  const baseClass = 'shrink-0 border px-2 py-1 text-xs'
+
+  return status === 'passed'
+    ? `${baseClass} border-white bg-white text-black`
+    : `${baseClass} border-white/15 text-white/50`
 }
 
 function ProfileView() {
@@ -707,24 +938,6 @@ function CheckpointStat({ label, value }: { label: string; value: string }) {
     <div className="border border-white/10 p-3">
       <dt className="text-xs text-white/45">{label}</dt>
       <dd className="mt-1 font-medium">{value}</dd>
-    </div>
-  )
-}
-
-function PlaceholderPanel({
-  description,
-  label,
-  value,
-}: {
-  description: string
-  label: string
-  value: string
-}) {
-  return (
-    <div className="border border-dashed border-white/20 p-5">
-      <p className="text-sm text-white/45">{label}</p>
-      <p className="mt-2 font-mono text-lg text-white">{value}</p>
-      <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">{description}</p>
     </div>
   )
 }
