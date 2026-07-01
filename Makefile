@@ -1,8 +1,9 @@
 GOCACHE ?= /private/tmp/gopath-gocache
 COMPOSE_ENV ?= infra/.env.example
 COMPOSE_FILE ?= infra/compose.yml
+API_BASE_URL ?= http://localhost:8080
 
-.PHONY: help backend-fmt-check backend-test backend-verify frontend-lint frontend-build frontend-verify compose-config stack-config stack-up stack-down diff-check
+.PHONY: help backend-fmt-check backend-test backend-verify frontend-lint frontend-build frontend-verify compose-config stack-config stack-up stack-down smoke-api diff-check
 
 help:
 	@printf '%s\n' \
@@ -16,6 +17,7 @@ help:
 		'  make stack-config    Validate local Docker Compose config' \
 		'  make stack-up        Start local Docker Compose stack' \
 		'  make stack-down      Stop local Docker Compose stack without deleting volumes' \
+		'  make smoke-api       Run local API smoke checks' \
 		'  make diff-check      Check git diff whitespace'
 
 backend-fmt-check:
@@ -47,6 +49,9 @@ stack-up:
 
 stack-down:
 	docker compose --env-file $(COMPOSE_ENV) -f $(COMPOSE_FILE) down
+
+smoke-api:
+	API_BASE_URL=$(API_BASE_URL) sh scripts/smoke-api.sh
 
 diff-check:
 	git diff --check
