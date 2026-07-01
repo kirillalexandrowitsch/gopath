@@ -26,7 +26,7 @@ docker compose --env-file infra/.env.example -f infra/compose.yml up -d
 
 ## Apply Migrations
 
-Apply the current schema after PostgreSQL is healthy:
+Apply migrations after PostgreSQL is healthy:
 
 ```sh
 ./scripts/migrate-up.sh
