@@ -48,6 +48,36 @@ export type ChallengeAttempt = {
   status: 'passed' | 'failed'
 }
 
+export type ProfileSkill = {
+  name: string
+  score: number
+}
+
+export type ProfileActivityDay = {
+  label: string
+  value: string
+  status: 'completed' | 'active' | 'planned' | 'empty'
+}
+
+export type ProfileCareerStep = {
+  title: string
+  detail: string
+  status: 'completed' | 'active' | 'locked'
+}
+
+export type ProfileReadinessItem = {
+  title: string
+  current: number
+  target: number
+  isComplete: boolean
+}
+
+export type ProfileAchievement = {
+  title: string
+  description: string
+  date: string
+}
+
 export type ShellSummary = {
   userName: string
   level: string
@@ -118,6 +148,47 @@ export type ShellSummary = {
       goVersion: string
     }
     attempts: ChallengeAttempt[]
+  }
+  profile: {
+    user: {
+      name: string
+      handle: string
+      initials: string
+      level: string
+      joinedAt: string
+    }
+    totals: {
+      completedLessons: number
+      practiceTasks: number
+      projectsCompleted: number
+      checkpointsCompleted: number
+      checkpointsTotal: number
+    }
+    skills: ProfileSkill[]
+    activityCalendar: ProfileActivityDay[]
+    weeklyXp: {
+      day: string
+      xp: number
+    }[]
+    careerPath: ProfileCareerStep[]
+    readiness: {
+      targetLevel: string
+      progressPercent: number
+      items: ProfileReadinessItem[]
+    }
+    achievements: ProfileAchievement[]
+    nextGoal: {
+      title: string
+      description: string
+      currentXp: number
+      targetXp: number
+      progressPercent: number
+    }
+    recommendation: {
+      title: string
+      description: string
+      to: string
+    }
   }
   weakTopics: {
     title: string
@@ -332,6 +403,129 @@ export const shellSummary: ShellSummary = {
       { timestamp: 'Сегодня, 12:21', summary: '2 / 3 теста пройдены', xp: 60, status: 'failed' },
       { timestamp: 'Сегодня, 11:58', summary: '1 / 3 теста пройдены', xp: 30, status: 'failed' },
     ],
+  },
+  profile: {
+    user: {
+      name: 'Alex Kim',
+      handle: '@alexkim',
+      initials: 'AK',
+      level: 'Junior Backend',
+      joinedAt: '15 апр. 2024',
+    },
+    totals: {
+      completedLessons: 24,
+      practiceTasks: 18,
+      projectsCompleted: 3,
+      checkpointsCompleted: 2,
+      checkpointsTotal: 6,
+    },
+    skills: [
+      { name: 'Go', score: 84 },
+      { name: 'REST API', score: 78 },
+      { name: 'PostgreSQL', score: 72 },
+      { name: 'Redis', score: 68 },
+      { name: 'Docker', score: 75 },
+      { name: 'Kafka', score: 60 },
+      { name: 'Kubernetes', score: 58 },
+      { name: 'Prometheus', score: 50 },
+    ],
+    activityCalendar: [
+      { label: 'Пн', value: '29', status: 'empty' },
+      { label: 'Вт', value: '30', status: 'empty' },
+      { label: 'Ср', value: '1', status: 'completed' },
+      { label: 'Чт', value: '2', status: 'completed' },
+      { label: 'Пт', value: '3', status: 'completed' },
+      { label: 'Сб', value: '4', status: 'completed' },
+      { label: 'Вс', value: '5', status: 'completed' },
+      { label: 'Пн', value: '6', status: 'empty' },
+      { label: 'Вт', value: '7', status: 'completed' },
+      { label: 'Ср', value: '8', status: 'completed' },
+      { label: 'Чт', value: '9', status: 'completed' },
+      { label: 'Пт', value: '10', status: 'empty' },
+      { label: 'Сб', value: '11', status: 'empty' },
+      { label: 'Вс', value: '12', status: 'empty' },
+      { label: 'Пн', value: '13', status: 'empty' },
+      { label: 'Вт', value: '14', status: 'empty' },
+      { label: 'Ср', value: '15', status: 'empty' },
+      { label: 'Чт', value: '16', status: 'empty' },
+      { label: 'Пт', value: '17', status: 'empty' },
+      { label: 'Сб', value: '18', status: 'empty' },
+      { label: 'Вс', value: '19', status: 'empty' },
+      { label: 'Пн', value: '20', status: 'empty' },
+      { label: 'Вт', value: '21', status: 'empty' },
+      { label: 'Ср', value: '22', status: 'empty' },
+      { label: 'Чт', value: '23', status: 'active' },
+      { label: 'Пт', value: '24', status: 'empty' },
+      { label: 'Сб', value: '25', status: 'planned' },
+      { label: 'Вс', value: '26', status: 'empty' },
+      { label: 'Пн', value: '27', status: 'empty' },
+      { label: 'Вт', value: '28', status: 'empty' },
+      { label: 'Ср', value: '29', status: 'empty' },
+      { label: 'Чт', value: '30', status: 'empty' },
+      { label: 'Пт', value: '31', status: 'empty' },
+      { label: 'Сб', value: '1', status: 'empty' },
+      { label: 'Вс', value: '2', status: 'empty' },
+    ],
+    weeklyXp: [
+      { day: 'Пн', xp: 120 },
+      { day: 'Вт', xp: 180 },
+      { day: 'Ср', xp: 260 },
+      { day: 'Чт', xp: 320 },
+      { day: 'Пт', xp: 220 },
+      { day: 'Сб', xp: 200 },
+      { day: 'Вс', xp: 120 },
+    ],
+    careerPath: [
+      { title: 'Стажер Backend', detail: '0 / 600 XP', status: 'completed' },
+      { title: 'Junior Backend', detail: '1 420 / 2 000 XP', status: 'active' },
+      { title: 'Middle Backend', detail: '2 000 XP требуется', status: 'locked' },
+      { title: 'Senior Backend', detail: '5 000 XP требуется', status: 'locked' },
+    ],
+    readiness: {
+      targetLevel: 'Middle Backend',
+      progressPercent: 67,
+      items: [
+        { title: 'Завершите 30 уроков', current: 24, target: 30, isComplete: false },
+        { title: 'Пройдите 3 checkpoint', current: 2, target: 3, isComplete: false },
+        { title: 'Решите 20 практических задач', current: 18, target: 20, isComplete: false },
+        { title: 'Создайте 2 проекта', current: 1, target: 2, isComplete: false },
+        { title: 'Наберите 2 000 XP', current: 1420, target: 2000, isComplete: false },
+      ],
+    },
+    achievements: [
+      {
+        title: 'Завершил проект «URL Shortener»',
+        description: 'Создал первый сервис на Go',
+        date: '22 мая',
+      },
+      {
+        title: 'Пройден checkpoint REST API',
+        description: 'Полноценный API с validation и тестами',
+        date: '20 мая',
+      },
+      {
+        title: '10 дней подряд',
+        description: 'Отличная дисциплина',
+        date: '18 мая',
+      },
+      {
+        title: 'Первые шаги в Kubernetes',
+        description: 'Запустил приложение в кластере',
+        date: '15 мая',
+      },
+    ],
+    nextGoal: {
+      title: 'Достигните уровня Middle Backend',
+      description: 'Заработайте 580 XP',
+      currentXp: 1420,
+      targetXp: 2000,
+      progressPercent: 71,
+    },
+    recommendation: {
+      title: 'Рекомендация для вас',
+      description: 'Попробуйте практику по теме Concurrency. Вы показываете в ней хорошие результаты.',
+      to: '/challenge/retry-context',
+    },
   },
   weakTopics: [
     { title: 'PostgreSQL', confidencePercent: 45, action: 'Тренировать' },

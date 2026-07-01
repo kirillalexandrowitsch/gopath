@@ -11,6 +11,10 @@ import {
   type ChallengeTest,
   type ChallengeTestStatus,
   type LearningBlockStatus,
+  type ProfileActivityDay,
+  type ProfileCareerStep,
+  type ProfileReadinessItem,
+  type ProfileSkill,
 } from './data/shell'
 
 const primaryNav = [
@@ -866,48 +870,436 @@ function challengeAttemptClassName(status: 'passed' | 'failed') {
 }
 
 function ProfileView() {
-  return (
-    <ShellPage
-      eyebrow="Profile"
-      title="Профиль"
-      description="Каркас профиля с будущими графиками навыков, календарем streak и рекомендациями."
-    >
-      <div className="grid gap-4 md:grid-cols-2">
-        <SummaryCard label="Пользователь" value={shellSummary.userName} />
-        <SummaryCard label="Готовность к Middle" value="67%" />
-      </div>
-    </ShellPage>
-  )
-}
+  const profile = shellSummary.profile
+  const totalWeekXp = profile.weeklyXp.reduce((total, item) => total + item.xp, 0)
 
-function ShellPage({
-  children,
-  description,
-  eyebrow,
-  title,
-}: {
-  children: React.ReactNode
-  description: string
-  eyebrow: string
-  title: string
-}) {
   return (
     <section className="grid gap-6">
-      <div className="max-w-3xl">
-        <p className="text-sm uppercase tracking-[0.22em] text-white/40">{eyebrow}</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-normal sm:text-5xl">{title}</h1>
-        <p className="mt-4 text-base leading-7 text-white/60">{description}</p>
+      <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-6 xl:flex-row xl:items-end">
+        <div>
+          <p className="text-sm uppercase tracking-[0.22em] text-white/40">Profile</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-normal sm:text-4xl">Профиль</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/60">
+            Личный прогресс, streak, навыки и готовность к следующему карьерному уровню.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3 xl:w-[520px]">
+          <ChallengeMetaCard label="Уровень" value={profile.user.level} />
+          <ChallengeMetaCard label="XP" value={`${shellSummary.xp.toLocaleString('ru-RU')} XP`} />
+          <ChallengeMetaCard label="Стрик" value={`${shellSummary.streakDays} дней`} />
+        </div>
       </div>
-      {children}
+
+      <div className="grid gap-4 2xl:grid-cols-[300px_minmax(0,1fr)_360px]">
+        <aside className="grid gap-4 self-start">
+          <section className="border border-white/10 p-5">
+            <div className="flex size-24 items-center justify-center rounded-full border border-white text-3xl font-semibold">
+              {profile.user.initials}
+            </div>
+            <h2 className="mt-5 text-2xl font-semibold">{profile.user.name}</h2>
+            <p className="mt-1 text-sm text-white/45">{profile.user.handle}</p>
+            <div className="mt-4 w-fit border border-white px-3 py-2 text-sm font-semibold">
+              {profile.user.level}
+            </div>
+            <div className="mt-5">
+              <p className="text-3xl font-semibold">{shellSummary.xp.toLocaleString('ru-RU')} XP</p>
+              <p className="mt-1 text-sm text-white/45">
+                из {shellSummary.nextLevelXp.toLocaleString('ru-RU')} до следующего уровня
+              </p>
+              <ProgressBar
+                value={Math.round((shellSummary.xp / shellSummary.nextLevelXp) * 100)}
+                compact
+              />
+            </div>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Текущий streak</p>
+            <p className="mt-3 text-2xl font-semibold">{shellSummary.streakDays} дней подряд</p>
+            <div className="mt-4 grid grid-cols-7 gap-2">
+              {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((day, index) => (
+                <div key={day} className="grid gap-2 text-center">
+                  <span className="text-xs text-white/45">{day}</span>
+                  <span className={profileStreakDayClassName(index < 6)}>
+                    {index < 6 ? '✓' : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Итоги</p>
+            <div className="mt-4 grid gap-3">
+              <ProfileSummaryStat
+                label="Завершенные уроки"
+                value={profile.totals.completedLessons}
+              />
+              <ProfileSummaryStat
+                label="Практические задания"
+                value={profile.totals.practiceTasks}
+              />
+              <ProfileSummaryStat label="Проекты" value={profile.totals.projectsCompleted} />
+              <ProfileSummaryStat
+                label="Checkpoint"
+                value={`${profile.totals.checkpointsCompleted} / ${profile.totals.checkpointsTotal}`}
+              />
+            </div>
+            <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-sm">
+              <span className="text-white/45">Вступил</span>
+              <span>{profile.user.joinedAt}</span>
+            </div>
+          </section>
+        </aside>
+
+        <section className="grid gap-4">
+          <section className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
+            <div className="border border-white/10 p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm text-white/45">Skill graph</p>
+                  <h2 className="mt-2 text-xl font-semibold">Навыки backend</h2>
+                </div>
+                <LearningTag>30D</LearningTag>
+              </div>
+              <ProfileSkillGraph skills={profile.skills} />
+            </div>
+
+            <div className="border border-white/10 p-5">
+              <p className="text-sm text-white/45">Прогресс по технологиям</p>
+              <div className="mt-5 grid gap-3">
+                {profile.skills.map((skill) => (
+                  <ProfileSkillBar key={skill.name} skill={skill} />
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
+              <div>
+                <p className="text-sm text-white/45">XP за неделю</p>
+                <h2 className="mt-2 text-xl font-semibold">Недельный темп</h2>
+              </div>
+              <div className="text-left sm:text-right">
+                <p className="text-2xl font-semibold">{totalWeekXp.toLocaleString('ru-RU')} XP</p>
+                <p className="mt-1 text-sm text-white/45">на этой неделе</p>
+              </div>
+            </div>
+            <ProfileWeeklyChart items={profile.weeklyXp} />
+          </section>
+
+          <section className="grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
+            <div className="border border-white/10 p-5">
+              <p className="text-sm text-white/45">Карьерный путь</p>
+              <div className="mt-5 grid gap-4">
+                {profile.careerPath.map((step) => (
+                  <ProfileCareerPathItem key={step.title} step={step} />
+                ))}
+              </div>
+            </div>
+
+            <div className="border border-white/10 p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm text-white/45">
+                    Готовность к {profile.readiness.targetLevel}
+                  </p>
+                  <h2 className="mt-2 text-xl font-semibold">
+                    {profile.readiness.progressPercent}%
+                  </h2>
+                </div>
+                <LearningTag>{profile.user.level}</LearningTag>
+              </div>
+              <ProgressBar value={profile.readiness.progressPercent} />
+              <div className="mt-5 grid gap-3">
+                {profile.readiness.items.map((item) => (
+                  <ProfileReadinessRow key={item.title} item={item} />
+                ))}
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <aside className="grid gap-4 self-start">
+          <section className="border border-white/10 p-5">
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-sm text-white/45">Календарь активности</p>
+              <span className="text-sm text-white/60">Май 2024</span>
+            </div>
+            <ProfileActivityCalendar days={profile.activityCalendar} />
+            <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-sm">
+              <span>{shellSummary.streakDays} дней подряд</span>
+              <span className="text-white/45">Лучший streak: 11 дней</span>
+            </div>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-sm text-white/45">Недавние достижения</p>
+              <span className="text-sm text-white/45">Смотреть все</span>
+            </div>
+            <div className="mt-5 grid gap-4">
+              {profile.achievements.map((achievement) => (
+                <ProfileAchievementItem key={achievement.title} achievement={achievement} />
+              ))}
+            </div>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">Следующая цель</p>
+            <div className="mt-4 border border-white/10 p-4">
+              <h2 className="text-lg font-semibold">{profile.nextGoal.title}</h2>
+              <p className="mt-2 text-sm text-white/55">{profile.nextGoal.description}</p>
+              <ProgressBar value={profile.nextGoal.progressPercent} compact />
+              <p className="mt-3 text-sm text-white/55">
+                {profile.nextGoal.currentXp.toLocaleString('ru-RU')} /{' '}
+                {profile.nextGoal.targetXp.toLocaleString('ru-RU')} XP
+              </p>
+            </div>
+          </section>
+
+          <section className="border border-white/10 p-5">
+            <p className="text-sm text-white/45">{profile.recommendation.title}</p>
+            <p className="mt-3 text-sm leading-6 text-white/65">
+              {profile.recommendation.description}
+            </p>
+            <NavLink
+              to={profile.recommendation.to}
+              className="mt-5 inline-flex border border-white/15 px-4 py-2 text-sm text-white/75"
+            >
+              Открыть практику
+            </NavLink>
+          </section>
+        </aside>
+      </div>
     </section>
   )
 }
 
-function SummaryCard({ label, value }: { label: string; value: string }) {
+function profileStreakDayClassName(isCompleted: boolean) {
+  const baseClass = 'border py-1 text-xs'
+
+  return isCompleted
+    ? `${baseClass} border-white bg-white text-black`
+    : `${baseClass} border-dashed border-white/35 text-white/45`
+}
+
+function ProfileSummaryStat({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="border border-white/10 p-5">
-      <p className="text-sm text-white/45">{label}</p>
-      <p className="mt-3 text-2xl font-semibold">{value}</p>
+    <div className="flex items-center justify-between gap-4 border border-white/10 px-3 py-2 text-sm">
+      <span className="text-white/55">{label}</span>
+      <span className="font-semibold">{value}</span>
+    </div>
+  )
+}
+
+function ProfileSkillGraph({ skills }: { skills: ProfileSkill[] }) {
+  const polygonPoints = skills
+    .map((skill, index) => {
+      const point = profileGraphPoint(index, skills.length, skill.score)
+      return `${point.x},${point.y}`
+    })
+    .join(' ')
+
+  return (
+    <svg viewBox="0 0 260 260" role="img" aria-label="Skill graph" className="mt-5 w-full">
+      {[25, 50, 75, 100].map((value) => (
+        <polygon
+          key={value}
+          points={skills
+            .map((_, index) => {
+              const point = profileGraphPoint(index, skills.length, value)
+              return `${point.x},${point.y}`
+            })
+            .join(' ')}
+          fill="none"
+          stroke="rgba(255,255,255,0.12)"
+          strokeWidth="1"
+        />
+      ))}
+      {skills.map((skill, index) => {
+        const outerPoint = profileGraphPoint(index, skills.length, 100)
+        const valuePoint = profileGraphPoint(index, skills.length, skill.score)
+        const labelPoint = profileGraphPoint(index, skills.length, 118)
+
+        return (
+          <g key={skill.name}>
+            <line
+              x1="130"
+              y1="130"
+              x2={outerPoint.x}
+              y2={outerPoint.y}
+              stroke="rgba(255,255,255,0.14)"
+            />
+            <circle cx={valuePoint.x} cy={valuePoint.y} r="3.5" fill="white" />
+            <text
+              x={labelPoint.x}
+              y={labelPoint.y}
+              fill="rgba(255,255,255,0.7)"
+              fontSize="9"
+              textAnchor="middle"
+              dominantBaseline="middle"
+            >
+              {skill.name}
+            </text>
+          </g>
+        )
+      })}
+      <polygon
+        points={polygonPoints}
+        fill="rgba(255,255,255,0.2)"
+        stroke="white"
+        strokeWidth="2"
+      />
+    </svg>
+  )
+}
+
+function profileGraphPoint(index: number, total: number, value: number) {
+  const angle = -Math.PI / 2 + (index / total) * Math.PI * 2
+  const radius = 82 * (value / 100)
+
+  return {
+    x: Number((130 + Math.cos(angle) * radius).toFixed(2)),
+    y: Number((130 + Math.sin(angle) * radius).toFixed(2)),
+  }
+}
+
+function ProfileSkillBar({ skill }: { skill: ProfileSkill }) {
+  return (
+    <div className="grid gap-2">
+      <div className="flex items-center justify-between gap-4 text-sm">
+        <span>{skill.name}</span>
+        <span className="text-white/55">{skill.score} / 100</span>
+      </div>
+      <ProgressBar value={skill.score} compact />
+    </div>
+  )
+}
+
+function ProfileWeeklyChart({ items }: { items: { day: string; xp: number }[] }) {
+  const maxXp = Math.max(...items.map((item) => item.xp))
+
+  return (
+    <div className="mt-6 flex h-44 items-end gap-3 border-b border-white/15 pb-2">
+      {items.map((item) => (
+        <div key={item.day} className="flex flex-1 flex-col items-center gap-2">
+          <span className="text-xs text-white/55">{item.xp}</span>
+          <div
+            className="w-full bg-white"
+            style={{ height: `${Math.max(18, (item.xp / maxXp) * 120)}px` }}
+            title={`${item.day}: ${item.xp} XP`}
+          />
+          <span className="text-xs text-white/45">{item.day}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ProfileCareerPathItem({ step }: { step: ProfileCareerStep }) {
+  return (
+    <div className="flex gap-3">
+      <span className={profileCareerDotClassName(step.status)} />
+      <div>
+        <p className="text-sm font-semibold">{step.title}</p>
+        <p className="mt-1 text-sm text-white/45">{step.detail}</p>
+      </div>
+    </div>
+  )
+}
+
+function profileCareerDotClassName(status: ProfileCareerStep['status']) {
+  const baseClass = 'mt-1 size-4 shrink-0 border'
+
+  if (status === 'completed') {
+    return `${baseClass} border-white bg-white`
+  }
+
+  if (status === 'active') {
+    return `${baseClass} border-white bg-black`
+  }
+
+  return `${baseClass} border-white/25 bg-black`
+}
+
+function ProfileReadinessRow({ item }: { item: ProfileReadinessItem }) {
+  return (
+    <div className="grid gap-2 border-b border-white/10 pb-3 last:border-b-0 last:pb-0">
+      <div className="flex items-center justify-between gap-4 text-sm">
+        <span>{item.title}</span>
+        <span className="text-white/55">
+          {item.current.toLocaleString('ru-RU')} / {item.target.toLocaleString('ru-RU')}
+        </span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className={item.isComplete ? 'size-3 bg-white' : 'size-3 border border-white/40'} />
+        <div className="h-2 flex-1 border border-white/10 bg-white/10">
+          <div
+            className="h-full bg-white"
+            style={{ width: `${Math.min(100, Math.round((item.current / item.target) * 100))}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProfileActivityCalendar({ days }: { days: ProfileActivityDay[] }) {
+  return (
+    <div className="mt-5 grid grid-cols-7 gap-2">
+      {days.slice(0, 7).map((day) => (
+        <span
+          key={`label-${day.label}-${day.value}`}
+          className="text-center text-xs text-white/45"
+        >
+          {day.label}
+        </span>
+      ))}
+      {days.map((day, index) => (
+        <span
+          key={`${day.value}-${index}`}
+          className={profileActivityDayClassName(day.status)}
+          title={`${day.label} ${day.value}`}
+        >
+          {day.status === 'completed' ? '✓' : day.value}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function profileActivityDayClassName(status: ProfileActivityDay['status']) {
+  const baseClass = 'flex aspect-square items-center justify-center border text-xs'
+
+  if (status === 'completed') {
+    return `${baseClass} border-white bg-white text-black`
+  }
+
+  if (status === 'active') {
+    return `${baseClass} border-2 border-white text-white`
+  }
+
+  if (status === 'planned') {
+    return `${baseClass} border-dashed border-white/50 text-white`
+  }
+
+  return `${baseClass} border-white/10 text-white/45`
+}
+
+function ProfileAchievementItem({
+  achievement,
+}: {
+  achievement: (typeof shellSummary.profile.achievements)[number]
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4 last:border-b-0 last:pb-0">
+      <div>
+        <p className="text-sm font-semibold leading-6">{achievement.title}</p>
+        <p className="mt-1 text-sm leading-5 text-white/50">{achievement.description}</p>
+      </div>
+      <span className="shrink-0 text-xs text-white/45">{achievement.date}</span>
     </div>
   )
 }
