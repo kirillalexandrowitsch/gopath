@@ -1,10 +1,14 @@
 package httpserver
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/kirillalexandrowitsch/gopath/backend/internal/learning"
 )
 
 func TestCoreLearningEndpoints(t *testing.T) {
@@ -21,7 +25,7 @@ func TestCoreLearningEndpoints(t *testing.T) {
 			assertBody: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				t.Helper()
 
-				var response tracksResponse
+				var response learning.TracksResponse
 				decodeJSON(t, recorder, &response)
 
 				if len(response.Tracks) != 1 {
@@ -38,7 +42,7 @@ func TestCoreLearningEndpoints(t *testing.T) {
 			assertBody: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				t.Helper()
 
-				var response levelsResponse
+				var response learning.LevelsResponse
 				decodeJSON(t, recorder, &response)
 
 				if len(response.Levels) != 4 {
@@ -55,7 +59,7 @@ func TestCoreLearningEndpoints(t *testing.T) {
 			assertBody: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				t.Helper()
 
-				var response lesson
+				var response learning.Lesson
 				decodeJSON(t, recorder, &response)
 
 				if response.ID != "go-errors-tests" {
@@ -72,7 +76,7 @@ func TestCoreLearningEndpoints(t *testing.T) {
 			assertBody: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				t.Helper()
 
-				var response progressResponse
+				var response learning.Progress
 				decodeJSON(t, recorder, &response)
 
 				if response.XP != 1420 {
@@ -89,7 +93,7 @@ func TestCoreLearningEndpoints(t *testing.T) {
 			assertBody: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				t.Helper()
 
-				var response profileResponse
+				var response learning.Profile
 				decodeJSON(t, recorder, &response)
 
 				if response.User.Name != "Alex Kim" {
@@ -138,12 +142,53 @@ func TestLessonNotFound(t *testing.T) {
 	}
 }
 
+func TestLearningStoreErrorReturnsInternalServerError(t *testing.T) {
+	t.Parallel()
+
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/tracks", nil)
+	recorder := httptest.NewRecorder()
+
+	NewRouterWithStore(failingLearningStore{}).ServeHTTP(recorder, request)
+
+	assertStatus(t, recorder, http.StatusInternalServerError)
+	assertJSONContentType(t, recorder)
+
+	var response errorResponse
+	decodeJSON(t, recorder, &response)
+
+	if response.Error != "internal server error" {
+		t.Fatalf("expected internal server error, got %q", response.Error)
+	}
+}
+
 func assertStatus(t *testing.T, recorder *httptest.ResponseRecorder, want int) {
 	t.Helper()
 
 	if recorder.Code != want {
 		t.Fatalf("expected status %d, got %d", want, recorder.Code)
 	}
+}
+
+type failingLearningStore struct{}
+
+func (s failingLearningStore) Tracks(ctx context.Context) (learning.TracksResponse, error) {
+	return learning.TracksResponse{}, errors.New("store failed")
+}
+
+func (s failingLearningStore) Levels(ctx context.Context) (learning.LevelsResponse, error) {
+	return learning.LevelsResponse{}, errors.New("store failed")
+}
+
+func (s failingLearningStore) Lesson(ctx context.Context, id string) (learning.Lesson, error) {
+	return learning.Lesson{}, errors.New("store failed")
+}
+
+func (s failingLearningStore) Progress(ctx context.Context, userID string) (learning.Progress, error) {
+	return learning.Progress{}, errors.New("store failed")
+}
+
+func (s failingLearningStore) Profile(ctx context.Context, userID string) (learning.Profile, error) {
+	return learning.Profile{}, errors.New("store failed")
 }
 
 func assertJSONContentType(t *testing.T, recorder *httptest.ResponseRecorder) {
