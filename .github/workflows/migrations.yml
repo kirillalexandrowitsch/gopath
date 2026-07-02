@@ -1,0 +1,19 @@
+name: Migrations
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate-migrations:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check validation script syntax
+        run: sh -n scripts/validate-migrations.sh
+
+      - name: Validate migrations
+        run: sh scripts/validate-migrations.sh
