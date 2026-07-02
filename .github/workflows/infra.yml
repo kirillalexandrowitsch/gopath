@@ -1,0 +1,22 @@
+name: Infrastructure
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose config
+        run: docker compose --env-file infra/.env.example -f infra/compose.yml config
+
+      - name: Check shell script syntax
+        run: |
+          for script in scripts/*.sh; do
+            sh -n "$script"
+          done
