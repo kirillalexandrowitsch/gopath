@@ -50,18 +50,120 @@ GOPATH_REDIS_PORT=6379
 GOPATH_REDIS_ADDR=localhost:6379
 ```
 
+## Root Command Workflow
+
+Основной local workflow теперь идет через root `Makefile`.
+
+Посмотреть доступные команды:
+
+```sh
+make help
+```
+
+Первичный setup frontend dependencies:
+
+```sh
+cd frontend
+npm install
+cd ..
+```
+
+Проверить local Docker Compose config без запуска stack:
+
+```sh
+make stack-config
+```
+
+Если используете локальный `infra/.env`, передайте override:
+
+```sh
+COMPOSE_ENV=infra/.env make stack-config
+```
+
+Запустить PostgreSQL и Redis:
+
+```sh
+make stack-up
+```
+
+Для локального `infra/.env`:
+
+```sh
+COMPOSE_ENV=infra/.env make stack-up
+```
+
+Применить migrations после запуска PostgreSQL:
+
+```sh
+./scripts/migrate-up.sh
+```
+
+Запустить backend без PostgreSQL dependency, в `MemoryStore` mode:
+
+```sh
+cd backend
+go run ./cmd/api
+```
+
+Запустить backend в PostgreSQL-backed mode:
+
+```sh
+cd backend
+GOPATH_DATABASE_URL='postgres://gopath:gopath_dev_password@localhost:5432/gopath?sslmode=disable' go run ./cmd/api
+```
+
+Запустить frontend:
+
+```sh
+cd frontend
+npm run dev
+```
+
+Запустить проверки:
+
+```sh
+make backend-verify
+make frontend-verify
+```
+
+Запустить API smoke checks, когда backend уже поднят:
+
+```sh
+make smoke-api
+```
+
+Если backend слушает другой address:
+
+```sh
+API_BASE_URL=http://localhost:8081 make smoke-api
+```
+
+Остановить local stack без удаления volumes:
+
+```sh
+make stack-down
+```
+
+Для локального `infra/.env`:
+
+```sh
+COMPOSE_ENV=infra/.env make stack-down
+```
+
+Не используйте `--volumes`, если явно не хотите удалить локальные PostgreSQL/Redis данные.
+
 ## Validate Compose Config
 
 Проверить Docker Compose config без запуска stack:
 
 ```sh
-docker compose --env-file infra/.env.example -f infra/compose.yml config
+make stack-config
 ```
 
 Если используете локальный `infra/.env`:
 
 ```sh
-docker compose --env-file infra/.env -f infra/compose.yml config
+COMPOSE_ENV=infra/.env make stack-config
 ```
 
 ## Start PostgreSQL and Redis
@@ -69,13 +171,13 @@ docker compose --env-file infra/.env -f infra/compose.yml config
 Запустить локальные PostgreSQL и Redis:
 
 ```sh
-docker compose --env-file infra/.env -f infra/compose.yml up -d
+COMPOSE_ENV=infra/.env make stack-up
 ```
 
 Если `infra/.env` не создан, можно использовать tracked example:
 
 ```sh
-docker compose --env-file infra/.env.example -f infra/compose.yml up -d
+make stack-up
 ```
 
 Посмотреть состояние stack:
@@ -161,45 +263,36 @@ Frontend сейчас использует local mock data. Backend API integrat
 Backend checks:
 
 ```sh
-cd backend
-GOCACHE=/private/tmp/gopath-gocache go test ./...
+make backend-verify
 ```
 
 Frontend checks:
 
 ```sh
-cd frontend
-npm run lint
-npm run build
+make frontend-verify
 ```
 
 Repository whitespace check:
 
 ```sh
-git diff --check
+make diff-check
 ```
 
 ## Smoke Checks
 
 Smoke checks предполагают, что backend запущен на `localhost:8080`.
 
-Health:
-
 ```sh
-curl -sS http://localhost:8080/healthz
+make smoke-api
 ```
 
-Tracks:
+Для backend на другом address:
 
 ```sh
-curl -sS http://localhost:8080/api/v1/tracks
+API_BASE_URL=http://localhost:8081 make smoke-api
 ```
 
-Current lesson:
-
-```sh
-curl -sS http://localhost:8080/api/v1/lessons/go-errors-tests
-```
+Smoke script проверяет `GET /healthz`, tracks, levels, current lesson, progress и profile.
 
 Challenge `run` и `submit` требуют JSON body с Go code. Полная frontend integration и persisted attempts будут добавлены позже.
 
@@ -208,13 +301,13 @@ Challenge `run` и `submit` требуют JSON body с Go code. Полная fr
 Остановить local stack без удаления volumes:
 
 ```sh
-docker compose --env-file infra/.env -f infra/compose.yml down
+COMPOSE_ENV=infra/.env make stack-down
 ```
 
 Если запускали stack через example env:
 
 ```sh
-docker compose --env-file infra/.env.example -f infra/compose.yml down
+make stack-down
 ```
 
 Не используйте `--volumes`, если явно не хотите удалить локальные PostgreSQL/Redis данные.
