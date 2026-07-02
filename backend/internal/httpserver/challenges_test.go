@@ -176,20 +176,35 @@ func TestChallengeEmptyCode(t *testing.T) {
 	assertChallengeRunnerNotCalled(t, runner)
 }
 
-func TestChallengeNotFound(t *testing.T) {
+func TestChallengeNotFoundContract(t *testing.T) {
 	t.Parallel()
 
-	request := httptest.NewRequest(
-		http.MethodPost,
-		"/api/v1/challenges/unknown/run",
-		bytes.NewBufferString(`{"code":"package main"}`),
-	)
-	recorder := httptest.NewRecorder()
+	tests := []struct {
+		name string
+		path string
+	}{
+		{name: "run", path: "/api/v1/challenges/unknown/run"},
+		{name: "submit", path: "/api/v1/challenges/unknown/submit"},
+	}
 
-	newRouter(nil, &fakeChallengeRunner{err: challenges.ErrChallengeNotFound}).ServeHTTP(recorder, request)
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 
-	assertStatus(t, recorder, http.StatusNotFound)
-	assertErrorResponse(t, recorder, errorChallengeNotFound)
+			request := httptest.NewRequest(
+				http.MethodPost,
+				test.path,
+				bytes.NewBufferString(`{"code":"package main"}`),
+			)
+			recorder := httptest.NewRecorder()
+
+			newRouter(nil, &fakeChallengeRunner{err: challenges.ErrChallengeNotFound}).ServeHTTP(recorder, request)
+
+			assertStatus(t, recorder, http.StatusNotFound)
+			assertErrorResponse(t, recorder, errorChallengeNotFound)
+		})
+	}
 }
 
 func TestChallengeInternalRunnerError(t *testing.T) {

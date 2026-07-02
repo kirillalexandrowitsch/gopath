@@ -123,7 +123,7 @@ func TestCoreLearningEndpoints(t *testing.T) {
 	}
 }
 
-func TestLessonNotFound(t *testing.T) {
+func TestLessonNotFoundContract(t *testing.T) {
 	t.Parallel()
 
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/lessons/unknown-lesson", nil)
