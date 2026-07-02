@@ -75,6 +75,14 @@ Response shape:
 }
 ```
 
+Response fields:
+
+- `tracks` - array of track objects.
+- `tracks[].id` - stable track id. Current known value: `go-backend`.
+- `tracks[].title` - display title.
+- `tracks[].description` - short product-facing description.
+- `tracks[].levelIds` - ordered career level ids in this track.
+
 ### `GET /api/v1/levels`
 
 Возвращает карьерные уровни.
@@ -95,6 +103,16 @@ Response shape:
   ]
 }
 ```
+
+Response fields:
+
+- `levels` - array of career level objects.
+- `levels[].id` - stable level id. Current known values: `trainee-backend`, `junior-backend`, `middle-backend`, `senior-backend`.
+- `levels[].title` - display title.
+- `levels[].status` - current level status. Current values: `completed`, `active`, `locked`.
+- `levels[].completedBlocks` - completed learning blocks in this level.
+- `levels[].totalBlocks` - total learning blocks in this level.
+- `levels[].requiredXp` - XP required to reach or unlock this level.
 
 ### `GET /api/v1/lessons/{id}`
 
@@ -140,6 +158,29 @@ Response shape:
 }
 ```
 
+Response fields:
+
+- `id` - stable lesson id. Current known value: `go-errors-tests`.
+- `title` - lesson title.
+- `step` - display progress label for the current lesson sequence.
+- `progressPercent` - lesson or block progress percentage.
+- `xpReward` - XP reward shown for completing the lesson.
+- `tags` - technical topic tags.
+- `question.prompt` - single-choice question text.
+- `question.options` - ordered answer options.
+- `question.options[].id` - stable option id.
+- `question.options[].label` - short option label, for example `A`.
+- `question.options[].text` - answer option text.
+- `question.correctId` - id of the correct option.
+- `question.feedback` - positive feedback text for the current bootstrap answer state.
+- `question.explanation` - explanation shown after answer checking.
+- `sidebar.conceptTitle` - sidebar concept heading.
+- `sidebar.conceptText` - theory paragraphs.
+- `sidebar.codeSnippet` - Go code snippet.
+- `sidebar.practiceNotes` - backend practice notes.
+- `sidebar.relatedTopics` - related topic tags.
+- `nextChallengeId` - suggested challenge id after the lesson.
+
 Errors:
 
 - unknown lesson id -> `404 {"error":"lesson not found"}`
@@ -183,6 +224,25 @@ Response shape:
 }
 ```
 
+Response fields:
+
+- `userId` - current user id. Current temporary value: `demo-user`.
+- `level` - display title of the current career level.
+- `xp` - current XP.
+- `nextLevelXp` - XP target for the next level.
+- `streakDays` - current streak length in days.
+- `currentLessonId` - id of the lesson to continue.
+- `completedLessons` - total completed lessons.
+- `practiceTasks` - completed practice tasks count.
+- `completedCheckpoints` - completed checkpoints count.
+- `totalCheckpoints` - total checkpoints in the current progress scope.
+- `dailyGoal.earnedXp` - XP earned toward today's goal.
+- `dailyGoal.targetXp` - today's XP target.
+- `dailyGoal.completedTasks` - completed tasks toward today's goal.
+- `dailyGoal.targetTasks` - today's task target.
+- `weeklyXp[].day` - short localized day label.
+- `weeklyXp[].xp` - XP earned on that day.
+
 Temporary behavior:
 
 - endpoint uses `demo-user` until auth and sessions are implemented;
@@ -225,6 +285,29 @@ Response shape:
   }
 }
 ```
+
+Response fields:
+
+- `user.id` - current user id. Current temporary value: `demo-user`.
+- `user.name` - display name.
+- `user.handle` - user handle.
+- `user.initials` - initials for avatar placeholder.
+- `user.joinedAt` - localized join date label.
+- `level` - display title of the current career level.
+- `xp` - current XP.
+- `nextLevelXp` - XP target for the next level.
+- `streakDays` - current streak length in days.
+- `skills[].name` - skill or technology name.
+- `skills[].score` - skill score from `0` to `100`.
+- `readiness.targetLevel` - next target career level.
+- `readiness.progressPercent` - readiness progress percentage.
+- `readiness.items[].title` - readiness checklist item title.
+- `readiness.items[].current` - current numeric progress for the item.
+- `readiness.items[].target` - target numeric progress for the item.
+- `readiness.items[].isComplete` - completion flag.
+- `recommendation.title` - recommendation title.
+- `recommendation.description` - recommendation body.
+- `recommendation.path` - frontend path for the recommended next action.
 
 Temporary behavior:
 
