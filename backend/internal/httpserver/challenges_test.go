@@ -89,6 +89,7 @@ func TestChallengeSubmitEndpoint(t *testing.T) {
 func TestChallengeInvalidJSON(t *testing.T) {
 	t.Parallel()
 
+	runner := &fakeChallengeRunner{}
 	request := httptest.NewRequest(
 		http.MethodPost,
 		"/api/v1/challenges/retry-context/run",
@@ -96,15 +97,71 @@ func TestChallengeInvalidJSON(t *testing.T) {
 	)
 	recorder := httptest.NewRecorder()
 
-	newRouter(nil, &fakeChallengeRunner{}).ServeHTTP(recorder, request)
+	newRouter(nil, runner).ServeHTTP(recorder, request)
 
 	assertStatus(t, recorder, http.StatusBadRequest)
 	assertErrorResponse(t, recorder, errorInvalidJSON)
+	assertChallengeRunnerNotCalled(t, runner)
+}
+
+func TestChallengeEmptyBody(t *testing.T) {
+	t.Parallel()
+
+	runner := &fakeChallengeRunner{}
+	request := httptest.NewRequest(
+		http.MethodPost,
+		"/api/v1/challenges/retry-context/run",
+		nil,
+	)
+	recorder := httptest.NewRecorder()
+
+	newRouter(nil, runner).ServeHTTP(recorder, request)
+
+	assertStatus(t, recorder, http.StatusBadRequest)
+	assertErrorResponse(t, recorder, errorInvalidJSON)
+	assertChallengeRunnerNotCalled(t, runner)
+}
+
+func TestChallengeUnknownJSONField(t *testing.T) {
+	t.Parallel()
+
+	runner := &fakeChallengeRunner{}
+	request := httptest.NewRequest(
+		http.MethodPost,
+		"/api/v1/challenges/retry-context/run",
+		bytes.NewBufferString(`{"code":"package main","extra":true}`),
+	)
+	recorder := httptest.NewRecorder()
+
+	newRouter(nil, runner).ServeHTTP(recorder, request)
+
+	assertStatus(t, recorder, http.StatusBadRequest)
+	assertErrorResponse(t, recorder, errorInvalidJSON)
+	assertChallengeRunnerNotCalled(t, runner)
+}
+
+func TestChallengeMissingCode(t *testing.T) {
+	t.Parallel()
+
+	runner := &fakeChallengeRunner{}
+	request := httptest.NewRequest(
+		http.MethodPost,
+		"/api/v1/challenges/retry-context/run",
+		bytes.NewBufferString(`{}`),
+	)
+	recorder := httptest.NewRecorder()
+
+	newRouter(nil, runner).ServeHTTP(recorder, request)
+
+	assertStatus(t, recorder, http.StatusBadRequest)
+	assertErrorResponse(t, recorder, errorCodeRequired)
+	assertChallengeRunnerNotCalled(t, runner)
 }
 
 func TestChallengeEmptyCode(t *testing.T) {
 	t.Parallel()
 
+	runner := &fakeChallengeRunner{}
 	request := httptest.NewRequest(
 		http.MethodPost,
 		"/api/v1/challenges/retry-context/run",
@@ -112,10 +169,11 @@ func TestChallengeEmptyCode(t *testing.T) {
 	)
 	recorder := httptest.NewRecorder()
 
-	newRouter(nil, &fakeChallengeRunner{}).ServeHTTP(recorder, request)
+	newRouter(nil, runner).ServeHTTP(recorder, request)
 
 	assertStatus(t, recorder, http.StatusBadRequest)
 	assertErrorResponse(t, recorder, errorCodeRequired)
+	assertChallengeRunnerNotCalled(t, runner)
 }
 
 func TestChallengeNotFound(t *testing.T) {
@@ -181,4 +239,15 @@ func (r *fakeChallengeRunner) Submit(
 	r.code = code
 
 	return r.result, r.err
+}
+
+func assertChallengeRunnerNotCalled(t *testing.T, runner *fakeChallengeRunner) {
+	t.Helper()
+
+	if runner.runCalls != 0 {
+		t.Fatalf("expected 0 run calls, got %d", runner.runCalls)
+	}
+	if runner.submitCalls != 0 {
+		t.Fatalf("expected 0 submit calls, got %d", runner.submitCalls)
+	}
 }

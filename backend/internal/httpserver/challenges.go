@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -20,7 +19,7 @@ func (s server) challengeSubmitHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s server) handleChallenge(w http.ResponseWriter, r *http.Request, submit bool) {
 	var request challenges.CodeRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	if err := decodeJSONRequest(r, &request); err != nil {
 		writeError(w, http.StatusBadRequest, errorInvalidJSON)
 		return
 	}
