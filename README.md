@@ -1,5 +1,10 @@
 # GoPath
 
+[![Backend](https://github.com/kirillalexandrowitsch/gopath/actions/workflows/backend.yml/badge.svg?branch=main)](https://github.com/kirillalexandrowitsch/gopath/actions/workflows/backend.yml)
+[![Frontend](https://github.com/kirillalexandrowitsch/gopath/actions/workflows/frontend.yml/badge.svg?branch=main)](https://github.com/kirillalexandrowitsch/gopath/actions/workflows/frontend.yml)
+[![Infrastructure](https://github.com/kirillalexandrowitsch/gopath/actions/workflows/infra.yml/badge.svg?branch=main)](https://github.com/kirillalexandrowitsch/gopath/actions/workflows/infra.yml)
+[![Migrations](https://github.com/kirillalexandrowitsch/gopath/actions/workflows/migrations.yml/badge.svg?branch=main)](https://github.com/kirillalexandrowitsch/gopath/actions/workflows/migrations.yml)
+
 GoPath — веб-приложение для русскоязычного обучения Go backend-разработке через короткие уроки, карьерную карту, XP, streak, checkpoints, задания с выбором ответа и code challenges.
 
 Проект развивается маленькими проверяемыми commit по localhost-first roadmap: сначала доводим приложение до production-ready состояния на `localhost`, и только после этого переходим к deploy.
@@ -47,6 +52,15 @@ Backend:
 
 Локальный запуск frontend, backend, PostgreSQL, Redis, migrations и smoke checks описан в [Local Development](docs/local-development.md).
 
+## CI
+
+GitHub Actions baseline:
+
+- `Backend` запускает Go tests в `backend/`.
+- `Frontend` запускает `npm ci`, `npm run lint` и `npm run build` в `frontend/`.
+- `Infrastructure` проверяет Docker Compose config и shell syntax для scripts.
+- `Migrations` запускает lightweight validation для SQL migration files.
+
 ## Development Status
 
 Уже есть:
@@ -59,6 +73,7 @@ Backend:
 - SQL migrations, demo seed data и migration runner script.
 - Optional PostgreSQL-backed learning store через `GOPATH_DATABASE_URL`.
 - Local Go challenge runner prototype для `Run` и `Submit`.
+- GitHub Actions CI baseline для backend, frontend, infrastructure и migrations.
 
 Пока не готово:
 
@@ -67,7 +82,6 @@ Backend:
 - Attempts persistence.
 - Real XP, streak, daily goal и progression writes.
 - Production sandbox isolation.
-- GitHub Actions CI.
 - Deploy.
 
 Следующий порядок работ описан в [Delivery roadmap](docs/delivery-roadmap.md).
