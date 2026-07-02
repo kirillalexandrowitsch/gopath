@@ -132,14 +132,7 @@ func TestLessonNotFound(t *testing.T) {
 	NewRouter().ServeHTTP(recorder, request)
 
 	assertStatus(t, recorder, http.StatusNotFound)
-	assertJSONContentType(t, recorder)
-
-	var response errorResponse
-	decodeJSON(t, recorder, &response)
-
-	if response.Error != "lesson not found" {
-		t.Fatalf("expected lesson not found error, got %q", response.Error)
-	}
+	assertErrorResponse(t, recorder, errorLessonNotFound)
 }
 
 func TestLearningStoreErrorReturnsInternalServerError(t *testing.T) {
@@ -151,14 +144,7 @@ func TestLearningStoreErrorReturnsInternalServerError(t *testing.T) {
 	NewRouterWithStore(failingLearningStore{}).ServeHTTP(recorder, request)
 
 	assertStatus(t, recorder, http.StatusInternalServerError)
-	assertJSONContentType(t, recorder)
-
-	var response errorResponse
-	decodeJSON(t, recorder, &response)
-
-	if response.Error != "internal server error" {
-		t.Fatalf("expected internal server error, got %q", response.Error)
-	}
+	assertErrorResponse(t, recorder, errorInternalServer)
 }
 
 func assertStatus(t *testing.T, recorder *httptest.ResponseRecorder, want int) {
@@ -204,5 +190,18 @@ func decodeJSON(t *testing.T, recorder *httptest.ResponseRecorder, destination a
 
 	if err := json.NewDecoder(recorder.Body).Decode(destination); err != nil {
 		t.Fatalf("decode response: %v", err)
+	}
+}
+
+func assertErrorResponse(t *testing.T, recorder *httptest.ResponseRecorder, want string) {
+	t.Helper()
+
+	assertJSONContentType(t, recorder)
+
+	var response errorResponse
+	decodeJSON(t, recorder, &response)
+
+	if response.Error != want {
+		t.Fatalf("expected error %q, got %q", want, response.Error)
 	}
 }

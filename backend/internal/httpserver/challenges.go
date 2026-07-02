@@ -21,23 +21,23 @@ func (s server) challengeSubmitHandler(w http.ResponseWriter, r *http.Request) {
 func (s server) handleChallenge(w http.ResponseWriter, r *http.Request, submit bool) {
 	var request challenges.CodeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		writeJSON(w, http.StatusBadRequest, errorResponse{Error: "invalid JSON"})
+		writeError(w, http.StatusBadRequest, errorInvalidJSON)
 		return
 	}
 
 	if strings.TrimSpace(request.Code) == "" {
-		writeJSON(w, http.StatusBadRequest, errorResponse{Error: "code is required"})
+		writeError(w, http.StatusBadRequest, errorCodeRequired)
 		return
 	}
 
 	challengeID := r.PathValue("id")
 	result, err := runChallenge(r.Context(), s.challengeRunner, challengeID, request.Code, submit)
 	if errors.Is(err, challenges.ErrChallengeNotFound) {
-		writeJSON(w, http.StatusNotFound, errorResponse{Error: "challenge not found"})
+		writeError(w, http.StatusNotFound, errorChallengeNotFound)
 		return
 	}
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, errorResponse{Error: "internal server error"})
+		writeError(w, http.StatusInternalServerError, errorInternalServer)
 		return
 	}
 

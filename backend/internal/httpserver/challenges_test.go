@@ -99,13 +99,7 @@ func TestChallengeInvalidJSON(t *testing.T) {
 	newRouter(nil, &fakeChallengeRunner{}).ServeHTTP(recorder, request)
 
 	assertStatus(t, recorder, http.StatusBadRequest)
-
-	var response errorResponse
-	decodeJSON(t, recorder, &response)
-
-	if response.Error != "invalid JSON" {
-		t.Fatalf("expected invalid JSON error, got %q", response.Error)
-	}
+	assertErrorResponse(t, recorder, errorInvalidJSON)
 }
 
 func TestChallengeEmptyCode(t *testing.T) {
@@ -121,13 +115,7 @@ func TestChallengeEmptyCode(t *testing.T) {
 	newRouter(nil, &fakeChallengeRunner{}).ServeHTTP(recorder, request)
 
 	assertStatus(t, recorder, http.StatusBadRequest)
-
-	var response errorResponse
-	decodeJSON(t, recorder, &response)
-
-	if response.Error != "code is required" {
-		t.Fatalf("expected code is required error, got %q", response.Error)
-	}
+	assertErrorResponse(t, recorder, errorCodeRequired)
 }
 
 func TestChallengeNotFound(t *testing.T) {
@@ -143,13 +131,7 @@ func TestChallengeNotFound(t *testing.T) {
 	newRouter(nil, &fakeChallengeRunner{err: challenges.ErrChallengeNotFound}).ServeHTTP(recorder, request)
 
 	assertStatus(t, recorder, http.StatusNotFound)
-
-	var response errorResponse
-	decodeJSON(t, recorder, &response)
-
-	if response.Error != "challenge not found" {
-		t.Fatalf("expected challenge not found error, got %q", response.Error)
-	}
+	assertErrorResponse(t, recorder, errorChallengeNotFound)
 }
 
 func TestChallengeInternalRunnerError(t *testing.T) {
@@ -165,13 +147,7 @@ func TestChallengeInternalRunnerError(t *testing.T) {
 	newRouter(nil, &fakeChallengeRunner{err: errors.New("runner failed")}).ServeHTTP(recorder, request)
 
 	assertStatus(t, recorder, http.StatusInternalServerError)
-
-	var response errorResponse
-	decodeJSON(t, recorder, &response)
-
-	if response.Error != "internal server error" {
-		t.Fatalf("expected internal server error, got %q", response.Error)
-	}
+	assertErrorResponse(t, recorder, errorInternalServer)
 }
 
 type fakeChallengeRunner struct {
