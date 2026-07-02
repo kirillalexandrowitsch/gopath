@@ -348,6 +348,16 @@ Response shape:
 }
 ```
 
+Response fields:
+
+- `status` - terminal challenge execution status for current sync endpoints.
+- `stdout` - captured standard output from runner commands.
+- `stderr` - captured standard error from runner commands.
+- `testsPassed` - number of passed tests.
+- `testsTotal` - total number of tests executed for this request.
+- `durationMs` - execution duration in milliseconds.
+- `hint` - optional learner-facing hint for failed, compile error or timeout results.
+
 ### `POST /api/v1/challenges/{id}/submit`
 
 Runs public and hidden tests for a challenge.
@@ -372,7 +382,12 @@ Current terminal statuses:
 - `timeout`
 - `internal_error`
 
-Future statuses from the product spec, such as `queued`, `running` and `blocked`, are not implemented yet.
+Reserved future statuses:
+
+- `queued`
+- `running`
+
+Current sync `run` and `submit` endpoints do not return `queued` or `running`.
 
 ### Challenge Errors
 

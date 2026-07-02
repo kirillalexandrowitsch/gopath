@@ -5,12 +5,14 @@ import (
 	"errors"
 )
 
+type Status string
+
 const (
-	StatusPassed        = "passed"
-	StatusFailed        = "failed"
-	StatusCompileError  = "compile_error"
-	StatusTimeout       = "timeout"
-	StatusInternalError = "internal_error"
+	StatusPassed        Status = "passed"
+	StatusFailed        Status = "failed"
+	StatusCompileError  Status = "compile_error"
+	StatusTimeout       Status = "timeout"
+	StatusInternalError Status = "internal_error"
 )
 
 var ErrChallengeNotFound = errors.New("challenge not found")
@@ -20,7 +22,7 @@ type CodeRequest struct {
 }
 
 type Result struct {
-	Status      string `json:"status"`
+	Status      Status `json:"status"`
 	Stdout      string `json:"stdout"`
 	Stderr      string `json:"stderr"`
 	TestsPassed int    `json:"testsPassed"`
