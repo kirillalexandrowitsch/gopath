@@ -52,6 +52,104 @@ Response:
 }
 ```
 
+## Planned Auth Contract
+
+Auth endpoints are planned but are not implemented yet. Current backend route behavior is unchanged; these notes exist to guide future auth implementation.
+
+Planned endpoints:
+
+```text
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+GET  /api/v1/me
+```
+
+Session direction:
+
+- Auth will use cookie-based sessions for the web app.
+- Planned cookie name: `gopath_session`.
+- Planned cookie attributes: `HttpOnly`, `SameSite=Lax`, `Path=/`.
+- Localhost and production `Secure` behavior will be finalized during implementation.
+- OAuth, email verification, password reset, CSRF and auth rate limits are future security work.
+
+### `POST /api/v1/auth/register`
+
+Planned request body:
+
+```json
+{
+  "email": "alex@example.com",
+  "handle": "@alexkim",
+  "displayName": "Alex Kim",
+  "password": "demo-password"
+}
+```
+
+Planned success response:
+
+```json
+{
+  "user": {
+    "id": "demo-user",
+    "email": "alex@example.com",
+    "handle": "@alexkim",
+    "displayName": "Alex Kim",
+    "role": "learner"
+  }
+}
+```
+
+Register will create a user and issue `gopath_session` when implemented.
+
+### `POST /api/v1/auth/login`
+
+Planned request body with email:
+
+```json
+{
+  "email": "alex@example.com",
+  "password": "demo-password"
+}
+```
+
+Planned request body with handle:
+
+```json
+{
+  "handle": "@alexkim",
+  "password": "demo-password"
+}
+```
+
+`email` or `handle` can identify the account. Exact validation rules will be finalized during implementation.
+
+Planned success response uses the same auth user shape as register. Login will issue `gopath_session` when implemented.
+
+### `POST /api/v1/auth/logout`
+
+Planned success response:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+Logout will delete the current session and clear `gopath_session` when implemented.
+
+### `GET /api/v1/me`
+
+Planned success response uses the same auth user shape as register.
+
+Unauthenticated requests will return a JSON error response. Exact status code and error string will be finalized when auth middleware is implemented.
+
+Current auth limitations:
+
+- Auth endpoints are not implemented yet.
+- Current progress/profile endpoints still use `demo-user`.
+- No session table, session repository, auth middleware, frontend auth flow, CSRF handling or auth rate limits are wired yet.
+
 ## Learning Endpoints
 
 Learning endpoints сейчас read-only.
